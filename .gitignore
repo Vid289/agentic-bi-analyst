@@ -1,0 +1,28 @@
+# Environment
+.env
+venv/
+env/
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+
+# Database (regenerate with init_db.py)
+data/*.duckdb
+data/*.duckdb.wal
+
+# Vector store
+chroma_db/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Streamlit
+.streamlit/secrets.toml

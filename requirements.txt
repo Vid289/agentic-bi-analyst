@@ -1,0 +1,28 @@
+# Core
+python-dotenv>=1.0.0
+
+# Database
+duckdb>=1.0.0
+
+# Synthetic data generation
+Faker>=24.0.0
+numpy>=1.26.0
+pandas>=2.2.0
+
+# LLM / Agent (Phase 2+)
+anthropic>=0.40.0
+
+# Vector store for schema retrieval (Phase 2+)
+chromadb>=0.5.0
+
+# Visualization (Phase 4+)
+plotly>=5.20.0
+
+# ML / Statistics (Phase 3+)
+scikit-learn>=1.4.0
+scipy>=1.12.0
+
+# Backend / Frontend (Phase 5)
+fastapi>=0.110.0
+uvicorn>=0.29.0
+streamlit>=1.33.0
