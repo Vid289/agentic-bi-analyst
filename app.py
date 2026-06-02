@@ -38,376 +38,337 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 html, body, [class*="css"] {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* ── Animations ────────────────────────────────────── */
 
-@keyframes statusPulse {
-    0%   { box-shadow: 0 0 0 0   rgba(74, 222, 128, 0.55); }
-    60%  { box-shadow: 0 0 0 7px rgba(74, 222, 128, 0);    }
-    100% { box-shadow: 0 0 0 0   rgba(74, 222, 128, 0);    }
+@keyframes livePulse {
+    0%, 100% { opacity: 1;   transform: scale(1);   }
+    50%       { opacity: 0.4; transform: scale(1.45); }
 }
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(14px); }
+@keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(10px); }
     to   { opacity: 1; transform: translateY(0);    }
 }
-@keyframes subtleFloat {
-    0%, 100% { transform: translateY(0px);  }
-    50%       { transform: translateY(-6px); }
-}
 
-/* Apply fadeInUp to every chat message bubble */
 [data-testid="stChatMessage"] {
-    animation: fadeInUp 0.35s ease both;
+    animation: fadeSlideIn 0.26s ease both;
 }
 
-/* ── Layout ────────────────────────────────────────── */
+/* ── Layout ───────────────────────────────────────── */
 
-/* Constrain the main content column to a readable width */
 .block-container {
-    max-width: 820px !important;
-    padding-top: 1.5rem !important;
-    padding-bottom: 5rem !important;
+    max-width: 760px !important;
+    padding-top: 2rem !important;
+    padding-bottom: 6rem !important;
 }
 
 /* ── Sidebar ──────────────────────────────────────── */
 
 [data-testid="stSidebar"] {
-    background-color: #0f172a !important;
-    border-right: 1px solid #1e293b !important;
+    background-color: #111111 !important;
+    border-right: 1px solid rgba(255,255,255,0.06) !important;
 }
 [data-testid="stSidebar"] p,
 [data-testid="stSidebar"] span,
 [data-testid="stSidebar"] label {
-    color: #cbd5e1 !important;
+    color: #c0c0c0 !important;
 }
 [data-testid="stSidebar"] hr {
-    border-color: #1e293b !important;
-    margin: 0.5rem 0 !important;
+    border-color: rgba(255,255,255,0.06) !important;
+    margin: 0.55rem 0 !important;
 }
 [data-testid="stSidebar"]::-webkit-scrollbar { width: 3px; }
-[data-testid="stSidebar"]::-webkit-scrollbar-track { background: #0f172a; }
+[data-testid="stSidebar"]::-webkit-scrollbar-track { background: #111111; }
 [data-testid="stSidebar"]::-webkit-scrollbar-thumb {
-    background: #334155;
+    background: rgba(255,255,255,0.1);
     border-radius: 4px;
 }
 
 /* Sidebar suggested-question buttons */
 [data-testid="stSidebar"] .stButton button {
     background: transparent !important;
-    border: 1px solid #1e293b !important;
-    color: #94a3b8 !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    color: #666 !important;
     font-family: 'Inter', sans-serif !important;
-    font-size: 0.81rem !important;
+    font-size: 0.79rem !important;
     text-align: left !important;
     justify-content: flex-start !important;
     border-radius: 8px !important;
-    padding: 0.42rem 0.8rem !important;
+    padding: 0.38rem 0.72rem !important;
     line-height: 1.45 !important;
-    transition: all 0.18s ease !important;
+    transition: all 0.15s ease !important;
+    letter-spacing: -0.005em !important;
 }
 [data-testid="stSidebar"] .stButton button:hover {
-    background: rgba(99, 102, 241, 0.09) !important;
-    border-color: rgba(99, 102, 241, 0.35) !important;
-    color: #a5b4fc !important;
-    transform: translateX(2px) !important;
+    background: rgba(255,255,255,0.04) !important;
+    border-color: rgba(255,255,255,0.13) !important;
+    color: #ccc !important;
 }
 [data-testid="stSidebar"] .stButton button p {
-    font-size: 0.81rem !important;
+    font-size: 0.79rem !important;
     color: inherit !important;
 }
 
-/* ── Sidebar: brand ─────────────────────────────────── */
+/* ── Sidebar: brand ──────────────────────────────── */
 
 .sb-brand {
     display: flex;
     align-items: center;
-    gap: 0.7rem;
-    padding: 0.1rem 0 0.6rem 0;
+    gap: 0.65rem;
+    padding: 0.2rem 0 0.65rem 0;
 }
-.sb-brand-icon {
-    width: 36px; height: 36px;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    border-radius: 10px;
+.sb-logo {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, #4f6ef7 0%, #7c3aed 100%);
+    border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.1rem; line-height: 1; flex-shrink: 0;
+    flex-shrink: 0;
 }
 .sb-brand-name {
-    font-size: 0.97rem;
-    font-weight: 700;
-    color: #f1f5f9;
+    font-size: 0.91rem;
+    font-weight: 600;
+    color: #e8e8e8;
+    letter-spacing: -0.02em;
     line-height: 1.2;
-    letter-spacing: -0.01em;
 }
 .sb-brand-sub {
-    font-size: 0.72rem;
-    color: #475569;
-    margin-top: 0.1rem;
+    font-size: 0.69rem;
+    color: #404040;
+    margin-top: 0.08rem;
+    letter-spacing: 0.01em;
 }
 
-/* ── Sidebar: live dot (animated) ──────────────────── */
+/* ── Sidebar: status row ─────────────────────────── */
 
-.sb-pills {
+.sb-status {
     display: flex;
-    gap: 0.4rem;
-    flex-wrap: wrap;
-    margin: 0.1rem 0 0.2rem 0;
-}
-.sb-pill {
-    display: inline-flex;
     align-items: center;
-    gap: 0.32rem;
-    border-radius: 20px;
-    padding: 0.2rem 0.65rem;
-    font-size: 0.72rem;
+    gap: 1rem;
+    margin: 0.05rem 0 0.1rem 0;
+}
+.sb-status-item {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.69rem;
+    color: #404040;
+}
+.live-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #22c55e;
+    flex-shrink: 0;
+    animation: livePulse 2.5s ease-in-out infinite;
+}
+.model-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #6366f1;
+    flex-shrink: 0;
+}
+
+/* ── Sidebar: section label ──────────────────────── */
+
+.sb-label {
+    font-size: 0.62rem;
     font-weight: 500;
-}
-.pill-green {
-    background: rgba(34, 197, 94, 0.1);
-    border: 1px solid rgba(34, 197, 94, 0.25);
-    color: #4ade80;
-}
-.pill-blue {
-    background: rgba(99, 102, 241, 0.1);
-    border: 1px solid rgba(99, 102, 241, 0.25);
-    color: #818cf8;
-}
-.pill-dot {
-    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
-}
-.dot-on {
-    background: #4ade80;
-    animation: statusPulse 2s ease-in-out infinite;
-}
-.dot-model { background: #818cf8; }
-
-/* ── Sidebar: section label ─────────────────────────── */
-
-.sb-section {
-    font-size: 0.66rem;
-    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: #334155;
+    color: #2e2e2e;
     margin: 0.1rem 0 0.5rem 0;
 }
 
-/* ── Sidebar: capability cards ──────────────────────── */
+/* ── Sidebar: capability list ────────────────────── */
 
-.cap-card {
+.cap-row {
     display: flex;
-    align-items: flex-start;
-    gap: 0.65rem;
-    padding: 0.55rem 0.6rem;
-    border-radius: 10px;
-    border: 1px solid transparent;
-    transition: all 0.2s ease;
-    cursor: default;
-    margin-bottom: 0.2rem;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.3rem 0.4rem;
+    border-radius: 6px;
+    transition: background 0.12s;
+    margin-bottom: 0.04rem;
 }
-.cap-card:hover {
-    background: rgba(99, 102, 241, 0.07);
-    border-color: rgba(99, 102, 241, 0.22);
-    transform: translateX(3px);
-}
-.cap-icon-box {
-    width: 30px; height: 30px;
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.95rem; line-height: 1; flex-shrink: 0;
-}
-.cap-text { flex: 1; min-width: 0; }
-.cap-title {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #e2e8f0;
-    line-height: 1.2;
-}
-.cap-desc {
-    font-size: 0.72rem;
-    color: #64748b;
-    line-height: 1.4;
-    margin-top: 0.15rem;
-}
+.cap-row:hover { background: rgba(255,255,255,0.03); }
+.cap-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.cap-text { font-size: 0.77rem; color: #5a5a5a; line-height: 1.3; }
 
-/* ── Sidebar: session stats ─────────────────────────── */
+/* ── Sidebar: session stats ──────────────────────── */
 
 .sb-stats {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    gap: 0.35rem;
+    gap: 0.4rem;
 }
 .sb-stat {
-    background: #0a1628;
-    border: 1px solid #1e293b;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.06);
     border-radius: 8px;
-    padding: 0.5rem 0.35rem;
+    padding: 0.5rem 0.3rem;
     text-align: center;
 }
 .sb-stat-val {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: #f1f5f9;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #e0e0e0;
     line-height: 1;
+    letter-spacing: -0.02em;
 }
 .sb-stat-lbl {
-    font-size: 0.63rem;
-    color: #475569;
-    margin-top: 0.2rem;
+    font-size: 0.59rem;
+    color: #363636;
+    margin-top: 0.22rem;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.07em;
 }
 
-/* ── Sidebar: schema list ───────────────────────────── */
+/* ── Sidebar: schema list ────────────────────────── */
 
 .schema-list { margin: 0; padding: 0; }
 .schema-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.28rem 0.5rem;
+    padding: 0.26rem 0.4rem;
     border-radius: 6px;
-    transition: background 0.12s;
-    cursor: default;
+    transition: background 0.1s;
 }
-.schema-item:hover { background: rgba(255,255,255,0.03); }
-.schema-item-left  { display: flex; align-items: center; gap: 0.45rem; }
-.schema-dot        { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-.schema-name       { font-size: 0.78rem; color: #94a3b8; }
+.schema-item:hover { background: rgba(255,255,255,0.025); }
+.schema-item-left  { display: flex; align-items: center; gap: 0.42rem; }
+.schema-dot        { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.schema-name       { font-size: 0.76rem; color: #6e6e6e; }
 .schema-badge {
-    font-size: 0.58rem;
-    padding: 0.04rem 0.38rem;
-    border-radius: 4px;
+    font-size: 0.55rem;
+    padding: 0.03rem 0.33rem;
+    border-radius: 3px;
     font-weight: 500;
 }
-.badge-ref   { background: rgba(34,197,94,0.1);  color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
-.badge-txn   { background: rgba(99,102,241,0.1); color: #818cf8; border: 1px solid rgba(99,102,241,0.2); }
-.badge-event { background: rgba(251,146,60,0.1); color: #fb923c; border: 1px solid rgba(251,146,60,0.2); }
-.schema-count { font-size: 0.7rem; color: #334155; }
+.badge-ref   { background: rgba(34,197,94,0.1);  color: #4ade80; }
+.badge-txn   { background: rgba(99,102,241,0.1); color: #818cf8; }
+.badge-event { background: rgba(251,146,60,0.1); color: #fb923c; }
+.schema-count {
+    font-size: 0.67rem;
+    color: #2e2e2e;
+    font-variant-numeric: tabular-nums;
+}
 
-/* ── Welcome screen ─────────────────────────────────── */
+/* ── Welcome ──────────────────────────────────────── */
 
 .welcome {
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding: 3.5rem 1rem 2rem 1rem;
-    animation: fadeInUp 0.5s ease both;
-}
-.welcome-icon {
-    font-size: 3rem;
-    line-height: 1;
-    margin-bottom: 1.25rem;
-    animation: subtleFloat 3.5s ease-in-out infinite;
-    display: block;
+    padding: 4.5rem 1.5rem 2rem 1.5rem;
+    animation: fadeSlideIn 0.4s ease both;
 }
 .welcome-title {
-    font-size: 1.65rem;
-    font-weight: 700;
-    color: #f1f5f9;
-    letter-spacing: -0.025em;
-    line-height: 1.2;
-    margin-bottom: 0.55rem;
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #e8e8e8;
+    letter-spacing: -0.035em;
+    line-height: 1.15;
+    margin-bottom: 0.7rem;
 }
 .welcome-sub {
-    font-size: 0.95rem;
-    color: #64748b;
-    line-height: 1.6;
-    max-width: 480px;
-    margin-bottom: 2rem;
+    font-size: 0.9rem;
+    color: #555;
+    line-height: 1.7;
+    max-width: 400px;
+    margin-bottom: 2.5rem;
+    font-weight: 300;
 }
-.welcome-divider {
-    width: 40px; height: 2px;
-    background: linear-gradient(90deg, #6366f1, #8b5cf6);
-    border-radius: 2px;
-    margin-bottom: 1.75rem;
-}
+
+/* ── Example chips ───────────────────────────────── */
+
 .eg-category {
-    font-size: 0.68rem;
-    font-weight: 600;
+    font-size: 0.62rem;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: #6366f1;
-    margin: 1.25rem 0 0.55rem 0;
+    color: #333;
+    margin: 1.3rem 0 0.5rem 0;
     width: 100%;
     text-align: left;
 }
 
-/* ── Main chat: chip buttons (empty state) ──────────── */
-
+/* Main-area chip buttons (example prompts) */
 section[data-testid="stMain"] .stButton button {
-    background: rgba(30, 41, 59, 0.7) !important;
-    border: 1px solid #334155 !important;
-    color: #94a3b8 !important;
+    background: rgba(255,255,255,0.035) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    color: #7a7a7a !important;
     font-family: 'Inter', sans-serif !important;
-    font-size: 0.83rem !important;
-    border-radius: 10px !important;
-    padding: 0.5rem 0.9rem !important;
-    line-height: 1.4 !important;
-    transition: all 0.2s ease !important;
+    font-size: 0.84rem !important;
+    border-radius: 12px !important;
+    padding: 0.65rem 1.05rem !important;
+    line-height: 1.45 !important;
+    transition: all 0.16s ease !important;
     text-align: left !important;
     justify-content: flex-start !important;
+    letter-spacing: -0.01em !important;
+    font-weight: 400 !important;
 }
 section[data-testid="stMain"] .stButton button:hover {
-    background: rgba(99, 102, 241, 0.1) !important;
-    border-color: rgba(99, 102, 241, 0.4) !important;
-    color: #c7d2fe !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 6px 18px rgba(99, 102, 241, 0.14) !important;
+    background: rgba(255,255,255,0.07) !important;
+    border-color: rgba(255,255,255,0.15) !important;
+    color: #d0d0d0 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.4) !important;
 }
 section[data-testid="stMain"] .stButton button p {
-    font-size: 0.83rem !important;
+    font-size: 0.84rem !important;
     color: inherit !important;
 }
 
-/* ── Chat: question label ───────────────────────────── */
+/* ── Chat: question label ────────────────────────── */
 
 .q-label {
-    font-size: 0.68rem;
-    font-weight: 600;
-    color: #475569;
+    font-size: 0.62rem;
+    font-weight: 500;
+    color: #2e2e2e;
     text-transform: uppercase;
-    letter-spacing: 0.07em;
-    margin-bottom: 0.3rem;
+    letter-spacing: 0.09em;
+    margin-bottom: 0.35rem;
 }
 
-/* ── Tool log ───────────────────────────────────────── */
+/* ── Tool log ────────────────────────────────────── */
 
 .tool-log {
-    background: #080f1e;
-    border: 1px solid #1e293b;
+    background: #0c0c0c;
+    border: 1px solid rgba(255,255,255,0.06);
     border-radius: 10px;
-    padding: 0.9rem 1.1rem;
-    font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
-    font-size: 0.75rem;
-    line-height: 1.75;
+    padding: 0.85rem 1.05rem;
+    font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'Menlo', monospace;
+    font-size: 0.73rem;
+    line-height: 1.8;
     white-space: pre-wrap;
     word-break: break-all;
     max-height: 260px;
     overflow-y: auto;
 }
-.tool-log::-webkit-scrollbar { width: 4px; }
+.tool-log::-webkit-scrollbar { width: 3px; }
 .tool-log::-webkit-scrollbar-thumb {
-    background: #334155;
+    background: rgba(255,255,255,0.07);
     border-radius: 4px;
 }
 
-/* ── Download button ────────────────────────────────── */
+/* ── Download button ─────────────────────────────── */
 
 section[data-testid="stMain"] .stDownloadButton button {
-    background: rgba(30, 41, 59, 0.6) !important;
-    border: 1px solid #334155 !important;
-    color: #94a3b8 !important;
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    color: #505050 !important;
     border-radius: 8px !important;
-    font-size: 0.82rem !important;
-    transition: all 0.18s !important;
+    font-size: 0.79rem !important;
+    letter-spacing: -0.005em !important;
+    transition: all 0.15s !important;
 }
 section[data-testid="stMain"] .stDownloadButton button:hover {
-    background: rgba(99, 102, 241, 0.1) !important;
-    border-color: rgba(99, 102, 241, 0.4) !important;
-    color: #a5b4fc !important;
+    background: rgba(255,255,255,0.06) !important;
+    border-color: rgba(255,255,255,0.14) !important;
+    color: #aaa !important;
 }
 
 </style>
@@ -431,22 +392,15 @@ _TABLE_ORDER = [
     "invoices", "usage_events", "support_tickets", "churn_events",
 ]
 
-# Business-language capability cards shown in the sidebar
+# Simple dot + label capabilities (no big cards)
 CAPABILITIES = [
-    ("📊", "#6366f1", "rgba(99,102,241,.15)",  "Revenue & MRR Tracking",
-     "Monitor revenue trends, pricing impact, and growth over time"),
-    ("👥", "#10b981", "rgba(16,185,129,.15)",  "Customer Churn Analysis",
-     "Find out who's leaving, when, and what's driving it"),
-    ("🔍", "#3b82f6", "rgba(59,130,246,.15)",  "Root Cause Investigation",
-     "Break down any metric change by region, plan, or channel"),
-    ("⚡", "#8b5cf6", "rgba(139,92,246,.15)",  "Anomaly Detection",
-     "Automatically flag unusual spikes or drops in your data"),
-    ("🧪", "#f59e0b", "rgba(245,158,11,.15)",  "Segment Comparison",
-     "Test whether differences between groups are statistically significant"),
-    ("📈", "#06b6d4", "rgba(6,182,212,.15)",   "Visual Dashboards",
-     "Generate interactive charts and 3D analytics views"),
-    ("📋", "#64748b", "rgba(100,116,139,.15)", "Downloadable Reports",
-     "Export your findings as a formatted HTML report"),
+    ("#6b9dff", "Revenue & MRR tracking"),
+    ("#3dd68c", "Customer churn analysis"),
+    ("#5b8dee", "Root cause investigation"),
+    ("#a78bfa", "Statistical anomaly detection"),
+    ("#fbbf24", "Segment comparison testing"),
+    ("#22d3ee", "Interactive 3D dashboards"),
+    ("#555",    "Downloadable HTML reports"),
 ]
 
 EXAMPLES = [
@@ -462,10 +416,10 @@ EXAMPLES = [
 ]
 
 _EXAMPLE_CATEGORIES = [
-    ("revenue",   "📈 Revenue"),
-    ("churn",     "📉 Churn"),
-    ("ops",       "🔧 Operations"),
-    ("dashboard", "📊 Dashboards"),
+    ("revenue",   "Revenue"),
+    ("churn",     "Churn"),
+    ("ops",       "Operations"),
+    ("dashboard", "Dashboards"),
 ]
 
 
@@ -518,18 +472,13 @@ stats = st.session_state.session_stats
 
 # --- build sidebar HTML ---
 
-# Capability cards
-_cap_cards_html = ""
-for emoji, color, bg, title, desc in CAPABILITIES:
-    _cap_cards_html += f"""
-    <div class="cap-card">
-        <div class="cap-icon-box" style="background:{bg};">
-            <span style="color:{color};">{emoji}</span>
-        </div>
-        <div class="cap-text">
-            <div class="cap-title">{title}</div>
-            <div class="cap-desc">{desc}</div>
-        </div>
+# Capability rows (simple dot + text)
+_cap_rows_html = ""
+for color, label in CAPABILITIES:
+    _cap_rows_html += f"""
+    <div class="cap-row">
+        <span class="cap-dot" style="background:{color}"></span>
+        <span class="cap-text">{label}</span>
     </div>"""
 
 # Schema rows
@@ -552,10 +501,17 @@ for name in _ordered_tables:
 
 with st.sidebar:
 
-    # Brand block
-    st.markdown(f"""
+    # Brand + logo
+    st.markdown("""
     <div class="sb-brand">
-        <div class="sb-brand-icon">📊</div>
+        <div class="sb-logo">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+                 xmlns="http://www.w3.org/2000/svg">
+                <rect x="1"   y="9" width="3" height="6" rx="0.75" fill="white" opacity="0.9"/>
+                <rect x="6.5" y="5" width="3" height="10" rx="0.75" fill="white" opacity="0.9"/>
+                <rect x="12"  y="1" width="3" height="14" rx="0.75" fill="white" opacity="0.9"/>
+            </svg>
+        </div>
         <div>
             <div class="sb-brand-name">Nimbus Analytics</div>
             <div class="sb-brand-sub">Agentic BI Analyst</div>
@@ -563,28 +519,28 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    # Live status + model pill
+    # Live status + model
     st.markdown(f"""
-    <div class="sb-pills">
-        <span class="sb-pill pill-green">
-            <span class="pill-dot dot-on"></span> Live
+    <div class="sb-status">
+        <span class="sb-status-item">
+            <span class="live-dot"></span>Connected
         </span>
-        <span class="sb-pill pill-blue">
-            <span class="pill-dot dot-model"></span> {CONFIG.active_model}
+        <span class="sb-status-item">
+            <span class="model-dot"></span>{CONFIG.active_model}
         </span>
     </div>
     """, unsafe_allow_html=True)
 
     st.divider()
 
-    # What I can do
-    st.markdown('<div class="sb-section">What I can do</div>', unsafe_allow_html=True)
-    st.markdown(_cap_cards_html, unsafe_allow_html=True)
+    # Capabilities
+    st.markdown('<div class="sb-label">Capabilities</div>', unsafe_allow_html=True)
+    st.markdown(_cap_rows_html, unsafe_allow_html=True)
 
     st.divider()
 
     # Session stats
-    st.markdown('<div class="sb-section">This session</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sb-label">Session</div>', unsafe_allow_html=True)
     st.markdown(f"""
     <div class="sb-stats">
         <div class="sb-stat">
@@ -606,7 +562,7 @@ with st.sidebar:
 
     # Database schema
     st.markdown(
-        f'<div class="sb-section">Database · Jan 2024 – Dec 2025</div>',
+        '<div class="sb-label">Database &middot; 2024 – 2025</div>',
         unsafe_allow_html=True,
     )
     st.markdown(f'<div class="schema-list">{_schema_html}</div>', unsafe_allow_html=True)
@@ -614,7 +570,7 @@ with st.sidebar:
     st.divider()
 
     # Suggested questions
-    st.markdown('<div class="sb-section">Try asking…</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sb-label">Try asking</div>', unsafe_allow_html=True)
     for i, (_, ex) in enumerate(EXAMPLES):
         if st.button(ex, key=f"sb_{i}", use_container_width=True):
             st.session_state.trigger_question = ex
@@ -622,7 +578,7 @@ with st.sidebar:
 
     st.divider()
 
-    if st.button("✕  Clear conversation", key="clear_btn", use_container_width=True):
+    if st.button("Clear conversation", key="clear_btn", use_container_width=True):
         st.session_state.messages = []
         st.session_state.session_stats = {"questions": 0, "tool_calls": 0, "charts": 0}
         st.rerun()
@@ -638,11 +594,11 @@ def _format_tool_log(lines: list[str]) -> str:
             continue
         esc = html_lib.escape(line)
         if line.strip().startswith("["):
-            parts.append(f'<span style="color:#818cf8">{esc}</span>')
+            parts.append(f'<span style="color:#6b9dff">{esc}</span>')
         elif line.startswith("   ->"):
-            parts.append(f'<span style="color:#86efac">{esc}</span>')
+            parts.append(f'<span style="color:#3dd68c">{esc}</span>')
         else:
-            parts.append(f'<span style="color:#475569">{esc}</span>')
+            parts.append(f'<span style="color:#3a3a3a">{esc}</span>')
     return "\n".join(parts)
 
 
@@ -653,19 +609,26 @@ def _copy_button(text: str, key: str) -> None:
         f"""
         <button
             onclick="navigator.clipboard.writeText({js_str}).then(()=>{{
-                this.textContent='Copied ✓';
-                this.style.color='#4ade80';
-                this.style.borderColor='rgba(74,222,128,0.4)';
+                this.textContent='Copied';
+                this.style.color='#3dd68c';
+                this.style.borderColor='rgba(61,214,140,0.3)';
                 setTimeout(()=>{{
-                    this.textContent='Copy answer';
+                    this.textContent='Copy';
                     this.style.color='';
                     this.style.borderColor='';
                 }}, 1800);
             }})"
-            style="background:transparent;border:1px solid #1e293b;color:#475569;
-                   border-radius:7px;padding:4px 13px;font-family:'Inter',sans-serif;
-                   font-size:12px;cursor:pointer;transition:all 0.2s;">
-            Copy answer
+            style="background:transparent;
+                   border:1px solid rgba(255,255,255,0.08);
+                   color:#4a4a4a;
+                   border-radius:7px;
+                   padding:4px 13px;
+                   font-family:'Inter',sans-serif;
+                   font-size:11.5px;
+                   cursor:pointer;
+                   transition:all 0.15s;
+                   letter-spacing:-0.005em;">
+            Copy
         </button>
         """,
         height=34,
@@ -693,7 +656,7 @@ def _render_assistant(msg: dict, idx: int) -> None:
 
     if msg.get("report_bytes"):
         st.download_button(
-            label="⬇  Download full report",
+            label="Download report",
             data=msg["report_bytes"],
             file_name="report.html",
             mime="text/html",
@@ -717,20 +680,17 @@ for idx, msg in enumerate(st.session_state.messages):
 
 if not st.session_state.messages and not question:
 
-    # Build per-category example buttons
     by_cat: dict[str, list[str]] = {}
     for cat, q in EXAMPLES:
         by_cat.setdefault(cat, []).append(q)
 
     st.markdown("""
     <div class="welcome">
-        <span class="welcome-icon">📊</span>
-        <div class="welcome-title">Hello! I'm your BI Analyst.</div>
+        <div class="welcome-title">What would you like to explore?</div>
         <div class="welcome-sub">
-            Ask me anything about your Nimbus Analytics data — revenue trends,
-            churn drivers, segment comparisons, or a full interactive dashboard.
+            Ask anything about your Nimbus Analytics data — revenue trends,
+            churn drivers, segment analysis, or an interactive dashboard.
         </div>
-        <div class="welcome-divider"></div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -775,7 +735,7 @@ if question:
 
             n_steps = sum(1 for l in tool_log_lines if l.strip().startswith("["))
             status.update(
-                label=f"Analysis complete · {n_steps} step{'s' if n_steps != 1 else ''}",
+                label=f"Done · {n_steps} step{'s' if n_steps != 1 else ''}",
                 state="complete",
                 expanded=False,
             )
@@ -813,7 +773,7 @@ if question:
         if report_path.exists():
             report_bytes = report_path.read_bytes()
             st.download_button(
-                label="⬇  Download full report",
+                label="Download report",
                 data=report_bytes,
                 file_name="report.html",
                 mime="text/html",
