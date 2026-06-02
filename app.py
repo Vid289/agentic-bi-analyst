@@ -35,17 +35,47 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 html, body, [class*="css"] {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
+/* ── Animations ────────────────────────────────────── */
+
+@keyframes statusPulse {
+    0%   { box-shadow: 0 0 0 0   rgba(74, 222, 128, 0.55); }
+    60%  { box-shadow: 0 0 0 7px rgba(74, 222, 128, 0);    }
+    100% { box-shadow: 0 0 0 0   rgba(74, 222, 128, 0);    }
+}
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0);    }
+}
+@keyframes subtleFloat {
+    0%, 100% { transform: translateY(0px);  }
+    50%       { transform: translateY(-6px); }
+}
+
+/* Apply fadeInUp to every chat message bubble */
+[data-testid="stChatMessage"] {
+    animation: fadeInUp 0.35s ease both;
+}
+
+/* ── Layout ────────────────────────────────────────── */
+
+/* Constrain the main content column to a readable width */
+.block-container {
+    max-width: 820px !important;
+    padding-top: 1.5rem !important;
+    padding-bottom: 5rem !important;
+}
+
 /* ── Sidebar ──────────────────────────────────────── */
 
 [data-testid="stSidebar"] {
-    background-color: #1e293b !important;
-    border-right: 1px solid #334155 !important;
+    background-color: #0f172a !important;
+    border-right: 1px solid #1e293b !important;
 }
 [data-testid="stSidebar"] p,
 [data-testid="stSidebar"] span,
@@ -53,254 +83,331 @@ html, body, [class*="css"] {
     color: #cbd5e1 !important;
 }
 [data-testid="stSidebar"] hr {
-    border-color: #334155 !important;
+    border-color: #1e293b !important;
     margin: 0.5rem 0 !important;
 }
-[data-testid="stSidebar"]::-webkit-scrollbar { width: 4px; }
-[data-testid="stSidebar"]::-webkit-scrollbar-track { background: #1e293b; }
+[data-testid="stSidebar"]::-webkit-scrollbar { width: 3px; }
+[data-testid="stSidebar"]::-webkit-scrollbar-track { background: #0f172a; }
 [data-testid="stSidebar"]::-webkit-scrollbar-thumb {
-    background: #475569;
+    background: #334155;
     border-radius: 4px;
 }
 
-/* Sidebar buttons */
-[data-testid="stSidebar"] button {
+/* Sidebar suggested-question buttons */
+[data-testid="stSidebar"] .stButton button {
     background: transparent !important;
-    border: 1px solid #334155 !important;
+    border: 1px solid #1e293b !important;
     color: #94a3b8 !important;
     font-family: 'Inter', sans-serif !important;
-    font-size: 0.82rem !important;
+    font-size: 0.81rem !important;
     text-align: left !important;
     justify-content: flex-start !important;
     border-radius: 8px !important;
-    padding: 0.45rem 0.85rem !important;
+    padding: 0.42rem 0.8rem !important;
     line-height: 1.45 !important;
-    transition: all 0.15s !important;
+    transition: all 0.18s ease !important;
 }
-[data-testid="stSidebar"] button:hover {
-    background: rgba(99, 102, 241, 0.1) !important;
-    border-color: #6366f1 !important;
+[data-testid="stSidebar"] .stButton button:hover {
+    background: rgba(99, 102, 241, 0.09) !important;
+    border-color: rgba(99, 102, 241, 0.35) !important;
     color: #a5b4fc !important;
+    transform: translateX(2px) !important;
 }
-[data-testid="stSidebar"] button p {
-    font-family: 'Inter', sans-serif !important;
-    font-size: 0.82rem !important;
-    color: #94a3b8 !important;
-}
-[data-testid="stSidebar"] button:hover p {
-    color: #a5b4fc !important;
+[data-testid="stSidebar"] .stButton button p {
+    font-size: 0.81rem !important;
+    color: inherit !important;
 }
 
-/* ── Sidebar: brand block ─────────────────────────── */
+/* ── Sidebar: brand ─────────────────────────────────── */
 
 .sb-brand {
     display: flex;
     align-items: center;
-    gap: 0.65rem;
-    padding: 0.25rem 0 0.5rem 0;
+    gap: 0.7rem;
+    padding: 0.1rem 0 0.6rem 0;
 }
 .sb-brand-icon {
-    font-size: 1.6rem;
-    line-height: 1;
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; line-height: 1; flex-shrink: 0;
 }
 .sb-brand-name {
-    font-size: 1rem;
+    font-size: 0.97rem;
     font-weight: 700;
     color: #f1f5f9;
-    line-height: 1.25;
+    line-height: 1.2;
     letter-spacing: -0.01em;
 }
 .sb-brand-sub {
-    font-size: 0.75rem;
-    color: #64748b;
-    margin-top: 0.08rem;
+    font-size: 0.72rem;
+    color: #475569;
+    margin-top: 0.1rem;
 }
 
-/* ── Sidebar: status pills ────────────────────────── */
+/* ── Sidebar: live dot (animated) ──────────────────── */
 
 .sb-pills {
     display: flex;
     gap: 0.4rem;
     flex-wrap: wrap;
-    margin: 0.1rem 0;
+    margin: 0.1rem 0 0.2rem 0;
 }
 .sb-pill {
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
+    gap: 0.32rem;
     border-radius: 20px;
-    padding: 0.22rem 0.65rem;
-    font-size: 0.73rem;
+    padding: 0.2rem 0.65rem;
+    font-size: 0.72rem;
     font-weight: 500;
 }
-.pill-green { background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.3); color: #4ade80; }
-.pill-blue  { background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); color: #818cf8; }
-.pill-dot   { width: 6px; height: 6px; border-radius: 50%; }
-.dot-on     { background: #4ade80; }
-.dot-model  { background: #818cf8; }
+.pill-green {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    color: #4ade80;
+}
+.pill-blue {
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    color: #818cf8;
+}
+.pill-dot {
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+.dot-on {
+    background: #4ade80;
+    animation: statusPulse 2s ease-in-out infinite;
+}
+.dot-model { background: #818cf8; }
 
-/* ── Sidebar: section header ──────────────────────── */
+/* ── Sidebar: section label ─────────────────────────── */
 
 .sb-section {
-    font-size: 0.68rem;
+    font-size: 0.66rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: #475569;
-    margin: 0.1rem 0 0.45rem 0;
+    color: #334155;
+    margin: 0.1rem 0 0.5rem 0;
 }
 
-/* ── Sidebar: session stats ───────────────────────── */
+/* ── Sidebar: capability cards ──────────────────────── */
+
+.cap-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.55rem 0.6rem;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    cursor: default;
+    margin-bottom: 0.2rem;
+}
+.cap-card:hover {
+    background: rgba(99, 102, 241, 0.07);
+    border-color: rgba(99, 102, 241, 0.22);
+    transform: translateX(3px);
+}
+.cap-icon-box {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.95rem; line-height: 1; flex-shrink: 0;
+}
+.cap-text { flex: 1; min-width: 0; }
+.cap-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    line-height: 1.2;
+}
+.cap-desc {
+    font-size: 0.72rem;
+    color: #64748b;
+    line-height: 1.4;
+    margin-top: 0.15rem;
+}
+
+/* ── Sidebar: session stats ─────────────────────────── */
 
 .sb-stats {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    gap: 0.4rem;
+    gap: 0.35rem;
 }
 .sb-stat {
-    background: #0f172a;
-    border: 1px solid #334155;
+    background: #0a1628;
+    border: 1px solid #1e293b;
     border-radius: 8px;
-    padding: 0.55rem 0.4rem;
+    padding: 0.5rem 0.35rem;
     text-align: center;
 }
 .sb-stat-val {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 700;
     color: #f1f5f9;
     line-height: 1;
 }
 .sb-stat-lbl {
-    font-size: 0.65rem;
-    color: #64748b;
+    font-size: 0.63rem;
+    color: #475569;
     margin-top: 0.2rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
 }
 
-/* ── Sidebar: schema list ─────────────────────────── */
+/* ── Sidebar: schema list ───────────────────────────── */
 
 .schema-list { margin: 0; padding: 0; }
 .schema-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.3rem 0.5rem;
+    padding: 0.28rem 0.5rem;
     border-radius: 6px;
     transition: background 0.12s;
     cursor: default;
 }
-.schema-item:hover { background: rgba(255,255,255,0.04); }
-.schema-item-left  { display: flex; align-items: center; gap: 0.5rem; }
-.schema-dot        { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.schema-name       { font-size: 0.8rem; color: #cbd5e1; }
+.schema-item:hover { background: rgba(255,255,255,0.03); }
+.schema-item-left  { display: flex; align-items: center; gap: 0.45rem; }
+.schema-dot        { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.schema-name       { font-size: 0.78rem; color: #94a3b8; }
 .schema-badge {
-    font-size: 0.6rem;
-    padding: 0.05rem 0.4rem;
+    font-size: 0.58rem;
+    padding: 0.04rem 0.38rem;
     border-radius: 4px;
     font-weight: 500;
 }
-.badge-ref   { background: rgba(34,197,94,0.12); color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
-.badge-txn   { background: rgba(99,102,241,0.12); color: #818cf8; border: 1px solid rgba(99,102,241,0.2); }
-.badge-event { background: rgba(251,146,60,0.12); color: #fb923c; border: 1px solid rgba(251,146,60,0.2); }
-.schema-count { font-size: 0.72rem; color: #475569; }
+.badge-ref   { background: rgba(34,197,94,0.1);  color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
+.badge-txn   { background: rgba(99,102,241,0.1); color: #818cf8; border: 1px solid rgba(99,102,241,0.2); }
+.badge-event { background: rgba(251,146,60,0.1); color: #fb923c; border: 1px solid rgba(251,146,60,0.2); }
+.schema-count { font-size: 0.7rem; color: #334155; }
 
-/* ── Sidebar: pattern items ───────────────────────── */
+/* ── Welcome screen ─────────────────────────────────── */
 
-.pattern-item {
+.welcome {
     display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;
-    padding: 0.32rem 0.5rem;
-    border-radius: 6px;
-    transition: background 0.12s;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 3.5rem 1rem 2rem 1rem;
+    animation: fadeInUp 0.5s ease both;
 }
-.pattern-item:hover { background: rgba(255,255,255,0.04); }
-.pattern-marker { color: #f59e0b; font-size: 0.75rem; flex-shrink: 0; margin-top: 0.05rem; }
-.pattern-text   { font-size: 0.78rem; color: #94a3b8; line-height: 1.4; }
-.pattern-period { font-size: 0.7rem; color: #475569; }
-
-/* ── Hero ─────────────────────────────────────────── */
-
-.hero {
-    background: linear-gradient(135deg, #1e3a5f 0%, #1e293b 60%, #162032 100%);
-    border: 1px solid #334155;
-    border-radius: 16px;
-    padding: 2rem 2.5rem;
-    margin-bottom: 1.75rem;
-    color: white;
+.welcome-icon {
+    font-size: 3rem;
+    line-height: 1;
+    margin-bottom: 1.25rem;
+    animation: subtleFloat 3.5s ease-in-out infinite;
+    display: block;
 }
-.hero-title {
-    font-size: 1.7rem;
+.welcome-title {
+    font-size: 1.65rem;
     font-weight: 700;
+    color: #f1f5f9;
     letter-spacing: -0.025em;
     line-height: 1.2;
-    margin: 0 0 0.5rem 0;
-    color: #f1f5f9;
+    margin-bottom: 0.55rem;
 }
-.hero-sub {
-    color: #94a3b8;
-    font-size: 0.92rem;
-    line-height: 1.6;
-    max-width: 580px;
-    margin: 0;
-}
-.hero-tags {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-top: 1.25rem;
-}
-.hero-tag {
-    background: rgba(255, 255, 255, 0.07);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 20px;
-    padding: 0.2rem 0.75rem;
-    font-size: 0.75rem;
-    color: #94a3b8;
-}
-
-/* ── Tool log ─────────────────────────────────────── */
-
-.tool-log {
-    background: #0f172a;
-    border: 1px solid #1e293b;
-    border-radius: 10px;
-    padding: 1rem 1.25rem;
-    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Menlo', monospace;
-    font-size: 0.775rem;
-    line-height: 1.7;
-    white-space: pre-wrap;
-    word-break: break-all;
-    max-height: 280px;
-    overflow-y: auto;
-}
-
-/* ── Empty state ──────────────────────────────────── */
-
-.empty-hint {
-    font-size: 0.88rem;
+.welcome-sub {
+    font-size: 0.95rem;
     color: #64748b;
-    margin-bottom: 0.25rem;
+    line-height: 1.6;
+    max-width: 480px;
+    margin-bottom: 2rem;
 }
-.empty-category {
-    font-size: 0.7rem;
+.welcome-divider {
+    width: 40px; height: 2px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    border-radius: 2px;
+    margin-bottom: 1.75rem;
+}
+.eg-category {
+    font-size: 0.68rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: #6366f1;
-    margin: 1.1rem 0 0.4rem 0;
+    margin: 1.25rem 0 0.55rem 0;
+    width: 100%;
+    text-align: left;
 }
 
-/* ── Chat: question label ─────────────────────────── */
+/* ── Main chat: chip buttons (empty state) ──────────── */
 
-.q-num {
+section[data-testid="stMain"] .stButton button {
+    background: rgba(30, 41, 59, 0.7) !important;
+    border: 1px solid #334155 !important;
+    color: #94a3b8 !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 0.83rem !important;
+    border-radius: 10px !important;
+    padding: 0.5rem 0.9rem !important;
+    line-height: 1.4 !important;
+    transition: all 0.2s ease !important;
+    text-align: left !important;
+    justify-content: flex-start !important;
+}
+section[data-testid="stMain"] .stButton button:hover {
+    background: rgba(99, 102, 241, 0.1) !important;
+    border-color: rgba(99, 102, 241, 0.4) !important;
+    color: #c7d2fe !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 18px rgba(99, 102, 241, 0.14) !important;
+}
+section[data-testid="stMain"] .stButton button p {
+    font-size: 0.83rem !important;
+    color: inherit !important;
+}
+
+/* ── Chat: question label ───────────────────────────── */
+
+.q-label {
     font-size: 0.68rem;
     font-weight: 600;
     color: #475569;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 0.25rem;
+    letter-spacing: 0.07em;
+    margin-bottom: 0.3rem;
+}
+
+/* ── Tool log ───────────────────────────────────────── */
+
+.tool-log {
+    background: #080f1e;
+    border: 1px solid #1e293b;
+    border-radius: 10px;
+    padding: 0.9rem 1.1rem;
+    font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
+    font-size: 0.75rem;
+    line-height: 1.75;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 260px;
+    overflow-y: auto;
+}
+.tool-log::-webkit-scrollbar { width: 4px; }
+.tool-log::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 4px;
+}
+
+/* ── Download button ────────────────────────────────── */
+
+section[data-testid="stMain"] .stDownloadButton button {
+    background: rgba(30, 41, 59, 0.6) !important;
+    border: 1px solid #334155 !important;
+    color: #94a3b8 !important;
+    border-radius: 8px !important;
+    font-size: 0.82rem !important;
+    transition: all 0.18s !important;
+}
+section[data-testid="stMain"] .stDownloadButton button:hover {
+    background: rgba(99, 102, 241, 0.1) !important;
+    border-color: rgba(99, 102, 241, 0.4) !important;
+    color: #a5b4fc !important;
 }
 
 </style>
@@ -324,22 +431,22 @@ _TABLE_ORDER = [
     "invoices", "usage_events", "support_tickets", "churn_events",
 ]
 
-PATTERNS = [
-    ("Pro plan price increase triggered a churn spike",  "Jun 2025"),
-    ("EMEA pricing experiment led to enterprise churn",  "Q3 2025"),
-    ("Low day-30 usage doubles the long-term churn rate", "all time"),
-    ("Enterprise files more tickets but scores higher CSAT", "all time"),
-]
-
-TOOLS = [
-    ("run_sql",              "Execute SELECT queries against DuckDB"),
-    ("detect_anomalies",     "Flag statistical outliers in a time series"),
-    ("compare_cohort_rates", "Z-test two groups for significance"),
-    ("investigate_drop",     "Decompose a before/after metric change"),
-    ("generate_chart",       "Render Plotly line or bar charts"),
-    ("generate_dashboard",   "3D interactive multi-panel dashboard"),
-    ("list_tables",          "List available tables"),
-    ("describe_table",       "Inspect columns and sample rows"),
+# Business-language capability cards shown in the sidebar
+CAPABILITIES = [
+    ("📊", "#6366f1", "rgba(99,102,241,.15)",  "Revenue & MRR Tracking",
+     "Monitor revenue trends, pricing impact, and growth over time"),
+    ("👥", "#10b981", "rgba(16,185,129,.15)",  "Customer Churn Analysis",
+     "Find out who's leaving, when, and what's driving it"),
+    ("🔍", "#3b82f6", "rgba(59,130,246,.15)",  "Root Cause Investigation",
+     "Break down any metric change by region, plan, or channel"),
+    ("⚡", "#8b5cf6", "rgba(139,92,246,.15)",  "Anomaly Detection",
+     "Automatically flag unusual spikes or drops in your data"),
+    ("🧪", "#f59e0b", "rgba(245,158,11,.15)",  "Segment Comparison",
+     "Test whether differences between groups are statistically significant"),
+    ("📈", "#06b6d4", "rgba(6,182,212,.15)",   "Visual Dashboards",
+     "Generate interactive charts and 3D analytics views"),
+    ("📋", "#64748b", "rgba(100,116,139,.15)", "Downloadable Reports",
+     "Export your findings as a formatted HTML report"),
 ]
 
 EXAMPLES = [
@@ -352,6 +459,13 @@ EXAMPLES = [
     ("dashboard", "Show me the revenue dashboard"),
     ("dashboard", "Give me the full business overview dashboard"),
     ("dashboard", "Show me the churn analysis dashboard"),
+]
+
+_EXAMPLE_CATEGORIES = [
+    ("revenue",   "📈 Revenue"),
+    ("churn",     "📉 Churn"),
+    ("ops",       "🔧 Operations"),
+    ("dashboard", "📊 Dashboards"),
 ]
 
 
@@ -374,9 +488,10 @@ def _get_schema_info() -> dict[str, int]:
         con.close()
 
 
-schema_info = _get_schema_info()
-total_rows  = sum(schema_info.values())
-table_count = len(schema_info)
+schema_info    = _get_schema_info()
+total_rows     = sum(schema_info.values())
+table_count    = len(schema_info)
+provider_label = "Anthropic Claude" if CONFIG.provider == "anthropic" else "Google Gemini"
 
 _ordered_tables = [t for t in _TABLE_ORDER if t in schema_info]
 _ordered_tables += [t for t in schema_info if t not in _TABLE_ORDER]
@@ -391,9 +506,9 @@ if "session_stats"    not in st.session_state:
 
 
 # --- resolve input early ---
-# st.chat_input renders at the bottom regardless of call position.
+# st.chat_input renders at the very bottom regardless of where it is called.
 
-_typed   = st.chat_input("Ask a business question about Nimbus Analytics...")
+_typed   = st.chat_input("Ask me anything about your business data…")
 _clicked = st.session_state.trigger_question
 st.session_state.trigger_question = None
 question: str | None = _clicked or _typed or None
@@ -403,41 +518,44 @@ stats = st.session_state.session_stats
 
 # --- build sidebar HTML ---
 
-schema_html = ""
+# Capability cards
+_cap_cards_html = ""
+for emoji, color, bg, title, desc in CAPABILITIES:
+    _cap_cards_html += f"""
+    <div class="cap-card">
+        <div class="cap-icon-box" style="background:{bg};">
+            <span style="color:{color};">{emoji}</span>
+        </div>
+        <div class="cap-text">
+            <div class="cap-title">{title}</div>
+            <div class="cap-desc">{desc}</div>
+        </div>
+    </div>"""
+
+# Schema rows
+_schema_html = ""
 for name in _ordered_tables:
     ttype, dot_col, badge_cls = _TABLE_TYPES.get(name, ("txn", "#818cf8", "badge-txn"))
-    tlabel = ttype
-    count  = schema_info.get(name, 0)
-    schema_html += f"""
+    count = schema_info.get(name, 0)
+    _schema_html += f"""
     <div class="schema-item">
         <div class="schema-item-left">
             <span class="schema-dot" style="background:{dot_col}"></span>
             <span class="schema-name">{name}</span>
-            <span class="schema-badge {badge_cls}">{tlabel}</span>
+            <span class="schema-badge {badge_cls}">{ttype}</span>
         </div>
         <span class="schema-count">{count:,}</span>
     </div>"""
-
-pattern_html = "".join(
-    f'<div class="pattern-item">'
-    f'<span class="pattern-marker">◆</span>'
-    f'<span class="pattern-text">{text}'
-    f'  <span class="pattern-period">{period}</span></span>'
-    f'</div>'
-    for text, period in PATTERNS
-)
-
-provider_label = "Anthropic Claude" if CONFIG.provider == "anthropic" else "Google Gemini"
 
 
 # --- sidebar ---
 
 with st.sidebar:
 
-    # Brand
+    # Brand block
     st.markdown(f"""
     <div class="sb-brand">
-        <span class="sb-brand-icon">📊</span>
+        <div class="sb-brand-icon">📊</div>
         <div>
             <div class="sb-brand-name">Nimbus Analytics</div>
             <div class="sb-brand-sub">Agentic BI Analyst</div>
@@ -445,17 +563,23 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    # Status pills
+    # Live status + model pill
     st.markdown(f"""
     <div class="sb-pills">
         <span class="sb-pill pill-green">
-            <span class="pill-dot dot-on"></span> Connected
+            <span class="pill-dot dot-on"></span> Live
         </span>
         <span class="sb-pill pill-blue">
             <span class="pill-dot dot-model"></span> {CONFIG.active_model}
         </span>
     </div>
     """, unsafe_allow_html=True)
+
+    st.divider()
+
+    # What I can do
+    st.markdown('<div class="sb-section">What I can do</div>', unsafe_allow_html=True)
+    st.markdown(_cap_cards_html, unsafe_allow_html=True)
 
     st.divider()
 
@@ -469,7 +593,7 @@ with st.sidebar:
         </div>
         <div class="sb-stat">
             <div class="sb-stat-val">{stats["tool_calls"]}</div>
-            <div class="sb-stat-lbl">Tool calls</div>
+            <div class="sb-stat-lbl">Steps</div>
         </div>
         <div class="sb-stat">
             <div class="sb-stat-val">{stats["charts"]}</div>
@@ -480,23 +604,17 @@ with st.sidebar:
 
     st.divider()
 
-    # Schema
+    # Database schema
     st.markdown(
-        f'<div class="sb-section">Database &nbsp;·&nbsp; Jan 2024 – Dec 2025</div>',
+        f'<div class="sb-section">Database · Jan 2024 – Dec 2025</div>',
         unsafe_allow_html=True,
     )
-    st.markdown(f'<div class="schema-list">{schema_html}</div>', unsafe_allow_html=True)
-
-    st.divider()
-
-    # Patterns
-    st.markdown('<div class="sb-section">Patterns in the data</div>', unsafe_allow_html=True)
-    st.markdown(pattern_html, unsafe_allow_html=True)
+    st.markdown(f'<div class="schema-list">{_schema_html}</div>', unsafe_allow_html=True)
 
     st.divider()
 
     # Suggested questions
-    st.markdown('<div class="sb-section">Suggested questions</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sb-section">Try asking…</div>', unsafe_allow_html=True)
     for i, (_, ex) in enumerate(EXAMPLES):
         if st.button(ex, key=f"sb_{i}", use_container_width=True):
             st.session_state.trigger_question = ex
@@ -504,36 +622,16 @@ with st.sidebar:
 
     st.divider()
 
-    if st.button("Clear conversation", key="clear_btn", use_container_width=True):
+    if st.button("✕  Clear conversation", key="clear_btn", use_container_width=True):
         st.session_state.messages = []
         st.session_state.session_stats = {"questions": 0, "tool_calls": 0, "charts": 0}
         st.rerun()
 
 
-# --- hero ---
-
-st.markdown(f"""
-<div class="hero">
-    <div class="hero-title">📊 Agentic BI Analyst</div>
-    <div class="hero-sub">
-        Ask any business question about Nimbus Analytics. The agent queries the database,
-        runs statistical tests, and explains exactly what it found — step by step.
-    </div>
-    <div class="hero-tags">
-        <span class="hero-tag">DuckDB · {total_rows:,} rows</span>
-        <span class="hero-tag">{table_count} tables · 2024–2025</span>
-        <span class="hero-tag">SQL + Statistics + Charts</span>
-        <span class="hero-tag">{provider_label}</span>
-        <span class="hero-tag">{stats["questions"]} quer{"y" if stats["questions"] == 1 else "ies"} this session</span>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-
 # --- helpers ---
 
 def _format_tool_log(lines: list[str]) -> str:
-    """Colour-code tool log lines for the terminal display."""
+    """Colour-code tool log lines for the investigation panel."""
     parts = []
     for line in lines:
         if not line.strip():
@@ -544,7 +642,7 @@ def _format_tool_log(lines: list[str]) -> str:
         elif line.startswith("   ->"):
             parts.append(f'<span style="color:#86efac">{esc}</span>')
         else:
-            parts.append(f'<span style="color:#64748b">{esc}</span>')
+            parts.append(f'<span style="color:#475569">{esc}</span>')
     return "\n".join(parts)
 
 
@@ -555,17 +653,17 @@ def _copy_button(text: str, key: str) -> None:
         f"""
         <button
             onclick="navigator.clipboard.writeText({js_str}).then(()=>{{
-                this.textContent='Copied';
+                this.textContent='Copied ✓';
                 this.style.color='#4ade80';
-                this.style.borderColor='#4ade80';
+                this.style.borderColor='rgba(74,222,128,0.4)';
                 setTimeout(()=>{{
                     this.textContent='Copy answer';
                     this.style.color='';
                     this.style.borderColor='';
                 }}, 1800);
             }})"
-            style="background:transparent;border:1px solid #334155;color:#64748b;
-                   border-radius:6px;padding:4px 12px;font-family:'Inter',sans-serif;
+            style="background:transparent;border:1px solid #1e293b;color:#475569;
+                   border-radius:7px;padding:4px 13px;font-family:'Inter',sans-serif;
                    font-size:12px;cursor:pointer;transition:all 0.2s;">
             Copy answer
         </button>
@@ -575,31 +673,27 @@ def _copy_button(text: str, key: str) -> None:
 
 
 def _render_assistant(msg: dict, idx: int) -> None:
-    """Render an assistant message: answer, actions, tool log, charts, download."""
+    """Render a stored assistant message: answer, tool log, charts, download."""
     st.markdown(msg["content"])
 
-    # Action row
-    col_copy, col_gap = st.columns([1, 5])
+    col_copy, _ = st.columns([1, 5])
     with col_copy:
         _copy_button(msg["content"], key=f"cp_{idx}")
 
     if msg.get("tool_log"):
-        with st.expander("View investigation steps"):
-            formatted = _format_tool_log(msg["tool_log"].split("\n"))
-            st.markdown(
-                f'<div class="tool-log">{formatted}</div>',
-                unsafe_allow_html=True,
-            )
+        with st.expander("See how I found this"):
+            fmt = _format_tool_log(msg["tool_log"].split("\n"))
+            st.markdown(f'<div class="tool-log">{fmt}</div>', unsafe_allow_html=True)
 
     for chart_html in msg.get("chart_htmls", []):
         components.html(chart_html, height=420, scrolling=False)
 
-    for dashboard_html in msg.get("dashboard_htmls", []):
-        components.html(dashboard_html, height=960, scrolling=True)
+    for dash_html in msg.get("dashboard_htmls", []):
+        components.html(dash_html, height=960, scrolling=True)
 
     if msg.get("report_bytes"):
         st.download_button(
-            label="Download full report",
+            label="⬇  Download full report",
             data=msg["report_bytes"],
             file_name="report.html",
             mime="text/html",
@@ -613,42 +707,46 @@ for idx, msg in enumerate(st.session_state.messages):
     with st.chat_message(msg["role"]):
         if msg["role"] == "user":
             q_num = sum(1 for m in st.session_state.messages[:idx + 1] if m["role"] == "user")
-            st.markdown(f'<div class="q-num">Question {q_num}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="q-label">Question {q_num}</div>', unsafe_allow_html=True)
             st.markdown(msg["content"])
         else:
             _render_assistant(msg, idx)
 
 
-# --- empty state ---
+# --- welcome / empty state ---
 
 if not st.session_state.messages and not question:
-    st.markdown(
-        '<p class="empty-hint">Not sure where to start? Pick a question below.</p>',
-        unsafe_allow_html=True,
-    )
 
-    categories = [
-        ("revenue",   "📈 Revenue"),
-        ("churn",     "📉 Churn"),
-        ("ops",       "🔧 Operations"),
-        ("dashboard", "📊 Dashboards"),
-    ]
+    # Build per-category example buttons
     by_cat: dict[str, list[str]] = {}
     for cat, q in EXAMPLES:
         by_cat.setdefault(cat, []).append(q)
 
-    for cat_key, cat_label in categories:
+    st.markdown("""
+    <div class="welcome">
+        <span class="welcome-icon">📊</span>
+        <div class="welcome-title">Hello! I'm your BI Analyst.</div>
+        <div class="welcome-sub">
+            Ask me anything about your Nimbus Analytics data — revenue trends,
+            churn drivers, segment comparisons, or a full interactive dashboard.
+        </div>
+        <div class="welcome-divider"></div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    for cat_key, cat_label in _EXAMPLE_CATEGORIES:
         st.markdown(
-            f'<div class="empty-category">{cat_label}</div>',
+            f'<div class="eg-category">{cat_label}</div>',
             unsafe_allow_html=True,
         )
         qs = by_cat.get(cat_key, [])
-        cols = st.columns(len(qs)) if qs else []
-        for col, q in zip(cols, qs):
-            with col:
-                if st.button(q, key=f"es_{q[:25]}", use_container_width=True):
-                    st.session_state.trigger_question = q
-                    st.rerun()
+        if qs:
+            cols = st.columns(len(qs))
+            for col, q in zip(cols, qs):
+                with col:
+                    if st.button(q, key=f"es_{q[:30]}", use_container_width=True):
+                        st.session_state.trigger_question = q
+                        st.rerun()
 
 
 # --- process new question ---
@@ -656,28 +754,28 @@ if not st.session_state.messages and not question:
 if question:
     q_num = stats["questions"] + 1
 
-    # User turn
+    # User bubble
     st.session_state.messages.append({"role": "user", "content": question})
     with st.chat_message("user"):
-        st.markdown(f'<div class="q-num">Question {q_num}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="q-label">Question {q_num}</div>', unsafe_allow_html=True)
         st.markdown(question)
 
-    # Assistant turn
+    # Assistant bubble
     with st.chat_message("assistant"):
         tool_log_lines: list[str] = []
 
-        with st.status("Investigating...", expanded=True) as status:
-            def write_fn(msg: str) -> None:
-                tool_log_lines.append(msg)
-                status.write(msg)
+        with st.status("Analysing your data…", expanded=True) as status:
+            def write_fn(msg_text: str) -> None:
+                tool_log_lines.append(msg_text)
+                status.write(msg_text)
 
-            answer           = run_agent(question, verbose=False, write_fn=write_fn)
-            chart_paths      = get_generated_charts()
-            dashboard_paths  = get_generated_dashboards()
+            answer          = run_agent(question, verbose=False, write_fn=write_fn)
+            chart_paths     = get_generated_charts()
+            dashboard_paths = get_generated_dashboards()
 
-            n_tools = sum(1 for l in tool_log_lines if l.strip().startswith("["))
+            n_steps = sum(1 for l in tool_log_lines if l.strip().startswith("["))
             status.update(
-                label=f"Done · {n_tools} tool calls",
+                label=f"Analysis complete · {n_steps} step{'s' if n_steps != 1 else ''}",
                 state="complete",
                 expanded=False,
             )
@@ -690,35 +788,32 @@ if question:
 
         tool_log_text = "\n".join(l for l in tool_log_lines if l.strip())
         if tool_log_text:
-            with st.expander("🔍 Investigation steps"):
-                formatted = _format_tool_log(tool_log_lines)
-                st.markdown(
-                    f'<div class="tool-log">{formatted}</div>',
-                    unsafe_allow_html=True,
-                )
+            with st.expander("See how I found this"):
+                fmt = _format_tool_log(tool_log_lines)
+                st.markdown(f'<div class="tool-log">{fmt}</div>', unsafe_allow_html=True)
 
-        # Read chart HTML now before a future run can overwrite the files
+        # Capture chart HTML now — file will be overwritten on the next run
         chart_htmls: list[str] = []
         for path in chart_paths:
             if Path(path).exists():
-                html_content = Path(path).read_text(encoding="utf-8")
-                chart_htmls.append(html_content)
-                components.html(html_content, height=420, scrolling=False)
+                content = Path(path).read_text(encoding="utf-8")
+                chart_htmls.append(content)
+                components.html(content, height=420, scrolling=False)
 
-        # Dashboards — rendered taller so the 3D charts have room to breathe
+        # Dashboards — taller to give 3-D plots room to breathe
         dashboard_htmls: list[str] = []
         for path in dashboard_paths:
             if Path(path).exists():
-                html_content = Path(path).read_text(encoding="utf-8")
-                dashboard_htmls.append(html_content)
-                components.html(html_content, height=960, scrolling=True)
+                content = Path(path).read_text(encoding="utf-8")
+                dashboard_htmls.append(content)
+                components.html(content, height=960, scrolling=True)
 
         report_bytes: bytes | None = None
         report_path = Path("output/report.html")
         if report_path.exists():
             report_bytes = report_path.read_bytes()
             st.download_button(
-                label="Download full report",
+                label="⬇  Download full report",
                 data=report_bytes,
                 file_name="report.html",
                 mime="text/html",
@@ -727,7 +822,7 @@ if question:
 
         # Update session stats
         st.session_state.session_stats["questions"]  += 1
-        st.session_state.session_stats["tool_calls"] += n_tools
+        st.session_state.session_stats["tool_calls"] += n_steps
         st.session_state.session_stats["charts"]     += len(chart_htmls) + len(dashboard_htmls)
 
         st.session_state.messages.append({
