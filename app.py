@@ -10,6 +10,7 @@ from __future__ import annotations
 import html as html_lib
 from pathlib import Path
 
+import duckdb
 import streamlit as st
 import streamlit.components.v1 as components
 
@@ -33,125 +34,232 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 html, body, [class*="css"] {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/* ── Hero ── */
-.hero {
-    background: linear-gradient(135deg, #0f2044 0%, #0e2d3d 55%, #0a2818 100%);
-    border-radius: 16px;
-    padding: 2.25rem 2.75rem;
-    margin-bottom: 1.75rem;
-    color: white;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+/* ── Dark sidebar ─────────────────────────────────── */
+
+[data-testid="stSidebar"] {
+    background-color: #0d1117 !important;
+    border-right: 1px solid #21262d !important;
 }
-.hero-title {
-    font-size: 1.85rem;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    line-height: 1.2;
-    margin: 0 0 0.5rem 0;
+[data-testid="stSidebar"] p,
+[data-testid="stSidebar"] span,
+[data-testid="stSidebar"] label {
+    color: #c9d1d9 !important;
 }
-.hero-sub {
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 0.92rem;
-    line-height: 1.6;
-    max-width: 620px;
-    margin: 0;
+[data-testid="stSidebar"] hr {
+    border-color: #21262d !important;
+    margin: 0.6rem 0 !important;
 }
-.hero-pills {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-top: 1.25rem;
+
+/* Sidebar scrollbar */
+[data-testid="stSidebar"]::-webkit-scrollbar { width: 4px; }
+[data-testid="stSidebar"]::-webkit-scrollbar-track { background: #0d1117; }
+[data-testid="stSidebar"]::-webkit-scrollbar-thumb {
+    background: #30363d;
+    border-radius: 2px;
 }
-.pill {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 999px;
-    padding: 0.22rem 0.85rem;
-    font-size: 0.74rem;
-    color: rgba(255, 255, 255, 0.78);
+
+/* Sidebar buttons — monospace, dark */
+[data-testid="stSidebar"] button {
+    background: #161b22 !important;
+    border: 1px solid #30363d !important;
+    color: #8b949e !important;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+    font-size: 0.73rem !important;
+    text-align: left !important;
+    justify-content: flex-start !important;
+    border-radius: 6px !important;
+    padding: 0.4rem 0.75rem !important;
+    line-height: 1.45 !important;
+    transition: background 0.15s, border-color 0.15s, color 0.15s !important;
+}
+[data-testid="stSidebar"] button:hover {
+    background: rgba(56, 139, 253, 0.1) !important;
+    border-color: #388bfd !important;
+    color: #58a6ff !important;
+}
+[data-testid="stSidebar"] button:hover p {
+    color: #58a6ff !important;
+}
+[data-testid="stSidebar"] button p {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+    font-size: 0.73rem !important;
+    color: #8b949e !important;
+}
+
+/* ── Sidebar custom HTML ──────────────────────────── */
+
+.sb-brand {
+    padding: 0.4rem 0 0.6rem 0;
+}
+.sb-brand-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #e6edf3;
     letter-spacing: 0.01em;
 }
+.sb-brand-ver {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: #484f58;
+    margin-top: 0.2rem;
+}
 
-/* ── Sidebar brand ── */
-.brand-block {
-    padding: 0.25rem 0 0.75rem 0;
-}
-.brand-name {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #0f172a;
-    letter-spacing: -0.01em;
-    line-height: 1.3;
-}
-.brand-sub {
-    font-size: 0.78rem;
-    color: #64748b;
-    margin-top: 0.15rem;
-}
-.model-badge {
-    display: inline-flex;
+/* Status row */
+.sb-status {
+    display: flex;
     align-items: center;
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
-    border-radius: 999px;
-    padding: 0.28rem 0.85rem;
-    font-size: 0.76rem;
-    color: #1e40af;
+    gap: 0.55rem;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 7px;
+    padding: 0.5rem 0.75rem;
+    margin: 0.35rem 0;
+}
+.dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.dot-green { background: #3fb950; box-shadow: 0 0 5px #3fb95066; }
+.dot-blue  { background: #58a6ff; box-shadow: 0 0 5px #58a6ff55; }
+.sb-status-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.71rem;
+    color: #8b949e;
+    flex: 1;
+}
+.sb-status-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.71rem;
+    color: #3fb950;
     font-weight: 500;
-    margin-top: 0.6rem;
+}
+.sb-status-val-blue {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.71rem;
+    color: #58a6ff;
+    font-weight: 500;
 }
 
-/* ── Dataset stats ── */
-.stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.45rem;
-    margin: 0.5rem 0 0.25rem 0;
-}
-.stat-card {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 0.65rem 0.5rem;
-    text-align: center;
-}
-.stat-val {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #0f172a;
-    line-height: 1;
-}
-.stat-lbl {
-    font-size: 0.67rem;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-top: 0.25rem;
-}
-
-/* ── Section label ── */
-.section-label {
-    font-size: 0.72rem;
+/* Section headers */
+.sb-head {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #94a3b8;
-    margin-bottom: 0.5rem;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin: 0.1rem 0 0.45rem 0;
+    padding-left: 0.1rem;
 }
 
-/* ── Terminal tool log ── */
+/* Schema tree */
+.schema-tree {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    line-height: 1;
+    padding: 0.1rem 0;
+}
+.schema-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.32rem 0.6rem;
+    border-radius: 5px;
+    transition: background 0.1s;
+    cursor: default;
+}
+.schema-row:hover { background: #161b22; }
+.schema-tree-line { color: #30363d; margin-right: 0.4rem; }
+.schema-tbl  { color: #79c0ff; }
+.schema-cnt  { color: #484f58; font-size: 0.68rem; }
+
+/* Capabilities list */
+.cap-list {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    line-height: 1;
+    padding: 0.1rem 0;
+}
+.cap-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    padding: 0.3rem 0.5rem;
+    border-radius: 5px;
+    color: #8b949e;
+    transition: background 0.1s;
+}
+.cap-row:hover { background: #161b22; color: #c9d1d9; }
+.cap-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #388bfd;
+    flex-shrink: 0;
+    margin-top: 0.35rem;
+}
+.cap-text { line-height: 1.4; }
+
+/* ── Terminal hero window ─────────────────────────── */
+
+.terminal-window {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+}
+.terminal-bar {
+    background: #21262d;
+    padding: 0.55rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    border-bottom: 1px solid #30363d;
+}
+.tr { width: 12px; height: 12px; border-radius: 50%; }
+.tr-red    { background: #ff5f57; }
+.tr-yellow { background: #febc2e; }
+.tr-green  { background: #28c840; }
+.terminal-tab {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem;
+    color: #8b949e;
+    margin-left: 0.35rem;
+}
+.terminal-body {
+    padding: 1.25rem 1.6rem 1.4rem 1.6rem;
+    font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.82rem;
+    line-height: 1.85;
+    color: #c9d1d9;
+}
+.t-ps1  { color: #3fb950; }
+.t-cmd  { color: #e6edf3; font-weight: 500; }
+.t-flag { color: #79c0ff; }
+.t-val  { color: #ffa657; }
+.t-ok   { color: #3fb950; }
+.t-dim  { color: #484f58; }
+.t-gray { color: #8b949e; }
+
+/* ── Tool log ─────────────────────────────────────── */
+
 .tool-log {
     background: #0d1117;
     border: 1px solid #21262d;
     border-radius: 10px;
     padding: 1rem 1.25rem;
-    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Menlo', 'Consolas', monospace;
+    font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
     font-size: 0.775rem;
     line-height: 1.7;
     white-space: pre-wrap;
@@ -160,21 +268,58 @@ html, body, [class*="css"] {
     overflow-y: auto;
 }
 
-/* ── Empty-state prompt cards ── */
-.empty-state-hint {
+/* ── Empty state ──────────────────────────────────── */
+
+.empty-hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
     color: #64748b;
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
 
+# --- cached schema info ---
+# Queries the real database once per app session.
+
+@st.cache_data
+def _get_schema_info() -> dict[str, int]:
+    """Return {table_name: row_count} for all tables in the database."""
+    con = duckdb.connect(str(CONFIG.db_path), read_only=True)
+    try:
+        tables = con.execute("""
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_schema = 'main'
+            ORDER BY table_name
+        """).fetchall()
+        return {
+            name: con.execute(f"SELECT COUNT(*) FROM {name}").fetchone()[0]
+            for (name,) in tables
+        }
+    finally:
+        con.close()
+
+
+schema_info  = _get_schema_info()
+total_rows   = sum(schema_info.values())
+table_count  = len(schema_info)
+
+# Preferred display order for the schema tree
+_TABLE_ORDER = [
+    "customers", "subscriptions", "invoices",
+    "usage_events", "support_tickets", "churn_events", "plans",
+]
+# Build ordered list, fall back to whatever the DB has
+_ordered_tables = [t for t in _TABLE_ORDER if t in schema_info]
+_ordered_tables += [t for t in schema_info if t not in _TABLE_ORDER]
+
+
 # --- session state ---
 
 if "messages" not in st.session_state:
-    # Each message: {role, content, tool_log, chart_htmls, report_bytes}
     st.session_state.messages = []
 
 if "trigger_question" not in st.session_state:
@@ -182,13 +327,11 @@ if "trigger_question" not in st.session_state:
 
 
 # --- resolve input early ---
-# st.chat_input always pins to the bottom regardless of where it's called.
-# Reading it here lets us know whether a question is incoming before we render
-# the empty-state cards, so those cards don't flash on the screen mid-run.
+# st.chat_input always renders at the bottom; calling it here reads the value.
 
 _typed   = st.chat_input("Ask a business question about Nimbus Analytics...")
 _clicked = st.session_state.trigger_question
-st.session_state.trigger_question = None           # clear so it doesn't re-fire
+st.session_state.trigger_question = None
 question: str | None = _clicked or _typed or None
 
 
@@ -203,71 +346,136 @@ EXAMPLES = [
     "What happened to EMEA customers in Q3 2025?",
 ]
 
+CAPABILITIES = [
+    "natural language → SQL",
+    "z-score anomaly detection",
+    "two-proportion z-test (cohorts)",
+    "dimension decomposition",
+    "plotly chart generation",
+    "multi-turn conversation",
+    "anthropic · google gemini",
+]
+
+TOOLS = [
+    ("run_sql",              "execute SELECT queries"),
+    ("detect_anomalies",     "flag statistical outliers"),
+    ("compare_cohort_rates", "z-test two groups"),
+    ("investigate_drop",     "decompose metric changes"),
+    ("generate_chart",       "line / bar charts"),
+    ("list_tables",          "explore the schema"),
+    ("describe_table",       "inspect columns + samples"),
+]
+
 provider_label = "Anthropic Claude" if CONFIG.provider == "anthropic" else "Google Gemini"
 
+# --- build schema tree HTML ---
+tree_rows = ""
+for i, name in enumerate(_ordered_tables):
+    count     = schema_info.get(name, 0)
+    prefix    = "└─" if i == len(_ordered_tables) - 1 else "├─"
+    fmt_count = f"{count:,}"
+    tree_rows += f"""
+    <div class="schema-row">
+        <span>
+            <span class="schema-tree-line">{prefix}</span>
+            <span class="schema-tbl">{name}</span>
+        </span>
+        <span class="schema-cnt">{fmt_count}</span>
+    </div>"""
+
+# --- build capabilities HTML ---
+cap_rows = "".join(
+    f'<div class="cap-row"><div class="cap-dot"></div><div class="cap-text">{c}</div></div>'
+    for c in CAPABILITIES
+)
+
+# --- build tools HTML ---
+tool_rows = "".join(
+    f'<div class="cap-row"><div class="cap-dot"></div>'
+    f'<div class="cap-text"><span style="color:#c9d1d9">{name}</span>'
+    f'<span style="color:#484f58"> — {desc}</span></div></div>'
+    for name, desc in TOOLS
+)
+
 with st.sidebar:
+
+    # Brand
     st.markdown(f"""
-    <div class="brand-block">
-        <div class="brand-name">📊 Nimbus Analytics</div>
-        <div class="brand-sub">Agentic BI Analyst</div>
-        <div class="model-badge">⚡ {provider_label} &nbsp;·&nbsp; {CONFIG.active_model}</div>
+    <div class="sb-brand">
+        <div class="sb-brand-name">▸ nimbus-bi-agent</div>
+        <div class="sb-brand-ver">v1.0 · agentic sql analyst</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Connection + model status
+    st.markdown(f"""
+    <div class="sb-status">
+        <div class="dot dot-green"></div>
+        <span class="sb-status-label">database</span>
+        <span class="sb-status-val">connected</span>
+    </div>
+    <div class="sb-status">
+        <div class="dot dot-blue"></div>
+        <span class="sb-status-label">model</span>
+        <span class="sb-status-val-blue">{CONFIG.active_model}</span>
     </div>
     """, unsafe_allow_html=True)
 
     st.divider()
 
-    st.markdown('<div class="section-label">Dataset</div>', unsafe_allow_html=True)
-    st.markdown("""
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-val">7</div>
-            <div class="stat-lbl">Tables</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-val">~1.3M</div>
-            <div class="stat-lbl">Rows</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-val">24 mo</div>
-            <div class="stat-lbl">History</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-val">~2K</div>
-            <div class="stat-lbl">Customers</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    # Schema tree
+    st.markdown(f'<div class="sb-head">schema — {table_count} tables · {total_rows:,} rows</div>',
+                unsafe_allow_html=True)
+    st.markdown(f'<div class="schema-tree">{tree_rows}</div>', unsafe_allow_html=True)
 
     st.divider()
 
-    st.markdown('<div class="section-label">Suggested questions</div>', unsafe_allow_html=True)
+    # Capabilities
+    st.markdown('<div class="sb-head">capabilities</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="cap-list">{cap_rows}</div>', unsafe_allow_html=True)
+
+    st.divider()
+
+    # Tools
+    st.markdown('<div class="sb-head">tools available</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="cap-list">{tool_rows}</div>', unsafe_allow_html=True)
+
+    st.divider()
+
+    # Suggested queries
+    st.markdown('<div class="sb-head">suggested queries</div>', unsafe_allow_html=True)
     for i, ex in enumerate(EXAMPLES):
-        if st.button(ex, key=f"sb_{i}", use_container_width=True):
+        if st.button(f"> {ex}", key=f"sb_{i}", use_container_width=True):
             st.session_state.trigger_question = ex
             st.rerun()
 
     st.divider()
 
-    if st.button("Clear conversation", use_container_width=True):
+    if st.button("× clear conversation", key="clear_btn", use_container_width=True):
         st.session_state.messages = []
         st.rerun()
 
 
-# --- hero header ---
+# --- terminal hero ---
 
 st.markdown(f"""
-<div class="hero">
-    <div class="hero-title">📊 Agentic BI Analyst</div>
-    <div class="hero-sub">
-        Ask any business question about Nimbus Analytics. The agent queries the
-        database, runs statistical tests, and explains exactly what it found —
-        step by step.
+<div class="terminal-window">
+    <div class="terminal-bar">
+        <div class="tr tr-red"></div>
+        <div class="tr tr-yellow"></div>
+        <div class="tr tr-green"></div>
+        <span class="terminal-tab">nimbus-bi-agent — zsh</span>
     </div>
-    <div class="hero-pills">
-        <span class="pill">DuckDB · 1.3M rows</span>
-        <span class="pill">SQL + Statistics + Charts</span>
-        <span class="pill">7 tables · 2024–2025</span>
-        <span class="pill">{provider_label}</span>
+    <div class="terminal-body">
+<span class="t-ps1">❯</span> <span class="t-cmd">python -m nimbus_agent</span>
+  <span class="t-flag">--db</span> <span class="t-val">data/saas.duckdb</span>
+  <span class="t-flag">--model</span> <span class="t-val">{CONFIG.active_model}</span>
+  <span class="t-flag">--provider</span> <span class="t-val">{CONFIG.provider}</span>
+
+<span class="t-ok">✓</span> <span class="t-gray">database connected  </span><span style="color:#c9d1d9">{total_rows:,} rows across {table_count} tables</span>
+<span class="t-ok">✓</span> <span class="t-gray">schema loaded       </span><span style="color:#c9d1d9">{", ".join(_ordered_tables)}</span>
+<span class="t-ok">✓</span> <span class="t-gray">tools registered    </span><span style="color:#c9d1d9">run_sql · detect_anomalies · compare_cohort_rates · investigate_drop · generate_chart</span>
+<span class="t-ok">✓</span> <span class="t-gray">agent ready         </span><span style="color:#c9d1d9">ask a question to begin ↓</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -278,9 +486,9 @@ st.markdown(f"""
 def _format_tool_log(lines: list[str]) -> str:
     """
     Colour-code tool log lines for the terminal display.
-      blue  → tool call  (e.g. [1] run_sql: ...)
-      green → result preview  (lines starting with   ->)
-      gray  → everything else (provider info, done line)
+      blue  → tool call  ([1] run_sql: ...)
+      green → result preview (   -> ...)
+      gray  → everything else
     """
     parts = []
     for line in lines:
@@ -297,7 +505,7 @@ def _format_tool_log(lines: list[str]) -> str:
 
 
 def _render_assistant(msg: dict, dl_key: str) -> None:
-    """Render an assistant message: answer + tool log + charts + download."""
+    """Render an assistant message: answer text, tool log, charts, download."""
     st.markdown(msg["content"])
 
     if msg.get("tool_log"):
@@ -332,12 +540,11 @@ for idx, msg in enumerate(st.session_state.messages):
 
 
 # --- empty state ---
-# Show clickable example cards only when there's no conversation yet and
-# no question is already on its way in.
+# Show prompt cards only when there's no conversation and no question coming in.
 
 if not st.session_state.messages and not question:
     st.markdown(
-        '<p class="empty-state-hint">Not sure where to start? Pick a question below.</p>',
+        '<p class="empty-hint"># select a prompt or type your own question below</p>',
         unsafe_allow_html=True,
     )
     cols = st.columns(2)
@@ -364,21 +571,16 @@ if question:
                 tool_log_lines.append(msg)
                 status.write(msg)
 
-            answer     = run_agent(question, verbose=False, write_fn=write_fn)
+            answer      = run_agent(question, verbose=False, write_fn=write_fn)
             chart_paths = get_generated_charts()
 
-            # Count tool calls (lines like "[1] run_sql: ...")
-            n_tools = sum(
-                1 for line in tool_log_lines
-                if line.strip().startswith("[")
-            )
+            n_tools = sum(1 for l in tool_log_lines if l.strip().startswith("["))
             status.update(
                 label=f"Investigation complete · {n_tools} tool calls",
                 state="complete",
                 expanded=False,
             )
 
-        # Answer
         st.markdown(answer)
 
         # Tool log
@@ -391,9 +593,7 @@ if question:
                     unsafe_allow_html=True,
                 )
 
-        # Charts — read the HTML files now while they're fresh.
-        # Storing the content (not the path) means charts survive future runs
-        # that might overwrite the files.
+        # Charts — read HTML content now while files are fresh
         chart_htmls: list[str] = []
         for path in chart_paths:
             if Path(path).exists():
@@ -414,11 +614,11 @@ if question:
                 key="dl_current",
             )
 
-        # Persist this turn to session state so it re-renders on the next run
+        # Persist to session state
         st.session_state.messages.append({
-            "role":        "assistant",
-            "content":     answer,
-            "tool_log":    tool_log_text,
-            "chart_htmls": chart_htmls,
+            "role":         "assistant",
+            "content":      answer,
+            "tool_log":     tool_log_text,
+            "chart_htmls":  chart_htmls,
             "report_bytes": report_bytes,
         })
