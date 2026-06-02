@@ -16,6 +16,22 @@ import duckdb
 import pandas as pd
 from src.config import CONFIG
 from src.stats import detect_anomalies, compare_cohort_rates, investigate_drop
+from src.charts import line_chart, bar_chart
+
+
+# Tracks chart file paths generated during the current agent run.
+# Cleared at the start of each run by clear_generated_charts().
+_generated_charts: list[str] = []
+
+
+def get_generated_charts() -> list[str]:
+    """Return chart paths produced so far in this run."""
+    return list(_generated_charts)
+
+
+def clear_generated_charts() -> None:
+    """Reset the chart list at the start of a new run."""
+    _generated_charts.clear()
 
 
 # --- tool schemas ---
@@ -329,6 +345,85 @@ def tool_investigate_drop(
     return investigate_drop(before, after, metric_name=metric_name)
 
 
+TOOLS_SCHEMA += [
+    {
+        "name": "generate_chart",
+        "description": (
+            "Run a SQL query and turn the result into a Plotly chart saved as HTML. "
+            "Use 'line' for time series (e.g. MRR by month) and 'bar' for category "
+            "comparisons (e.g. churn by region). Call this after confirming the data "
+            "with run_sql so you know the column names."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "sql": {
+                    "type": "string",
+                    "description": "SELECT query returning exactly two columns: x and y.",
+                },
+                "chart_type": {
+                    "type": "string",
+                    "description": "'line' or 'bar'.",
+                },
+                "x_column": {
+                    "type": "string",
+                    "description": "Column name to use as the x-axis.",
+                },
+                "y_column": {
+                    "type": "string",
+                    "description": "Column name to use as the y-axis.",
+                },
+                "title": {
+                    "type": "string",
+                    "description": "Chart title shown above the chart.",
+                },
+                "filename": {
+                    "type": "string",
+                    "description": "Output filename, e.g. 'mrr_over_time.html'. Must end in .html.",
+                },
+            },
+            "required": ["sql", "chart_type", "x_column", "y_column", "title"],
+        },
+    },
+]
+
+
+def tool_generate_chart(
+    sql: str,
+    chart_type: str,
+    x_column: str,
+    y_column: str,
+    title: str,
+    filename: str = "chart.html",
+) -> str:
+    """
+    Run the SQL, extract the two columns, and call the right chart function.
+    Appends the saved path to _generated_charts so the report can embed it.
+    """
+    try:
+        df = _run_query_to_df(sql)
+    except Exception as e:
+        return f"SQL Error: {e}"
+
+    if x_column not in df.columns:
+        return f"Error: '{x_column}' not found. Columns: {list(df.columns)}"
+    if y_column not in df.columns:
+        return f"Error: '{y_column}' not found. Columns: {list(df.columns)}"
+
+    x = df[x_column].astype(str).tolist()
+    y = pd.to_numeric(df[y_column], errors="coerce").tolist()
+
+    if chart_type == "line":
+        path = line_chart(x, y, title=title, filename=filename)
+    elif chart_type == "bar":
+        path = bar_chart(x, y, title=title, filename=filename)
+    else:
+        return f"Error: chart_type must be 'line' or 'bar', got '{chart_type}'."
+
+    _generated_charts.append(path)
+    return f"Chart saved: {path}"
+
+
 # --- dispatcher ---
 # Maps tool names to their Python functions.
 # execute_tool() is the only function the agent loop needs to call.
@@ -340,6 +435,7 @@ TOOL_FUNCTIONS = {
     "detect_anomalies":     tool_detect_anomalies,
     "compare_cohort_rates": tool_compare_cohort_rates,
     "investigate_drop":     tool_investigate_drop,
+    "generate_chart":       tool_generate_chart,
 }
 
 

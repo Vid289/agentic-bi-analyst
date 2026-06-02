@@ -102,7 +102,7 @@ The data has a few patterns built in so the agent has interesting things to find
 - [x] Phase 1 — Project scaffold and synthetic database
 - [x] Phase 2 — Agent loop with tool use and multi-provider LLM support
 - [x] Phase 3 — Statistical anomaly detection and root-cause investigation
-- [ ] Phase 4 — Auto-generated visualizations and written summaries
+- [x] Phase 4 — Auto-generated visualizations and written summaries
 - [ ] Phase 5 — Streamlit UI and deployment
 
 ## Notes

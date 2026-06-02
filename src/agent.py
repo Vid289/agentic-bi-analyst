@@ -13,8 +13,9 @@ from __future__ import annotations
 
 from src.config import CONFIG
 from src.schema_introspection import get_schema_summary
-from src.tools import execute_tool
+from src.tools import execute_tool, get_generated_charts, clear_generated_charts
 from src.llm_provider import get_provider
+from src.report import generate_report
 
 
 # --- system prompt ---
@@ -32,6 +33,9 @@ analysis. You have these tools:
   two cohorts is real or just noise.
 - investigate_drop: given a metric before/after, decompose the change by some
   dimension (region, plan, channel) and rank where the change concentrated.
+- generate_chart: run a SQL query and save the result as a Plotly chart (line or
+  bar). Use 'line' for time series, 'bar' for category comparisons. Call this
+  after you've confirmed the data with run_sql so you know the column names.
 
 # How to work
 
@@ -74,6 +78,9 @@ def run_agent(question: str, verbose: bool = True) -> str:
     Returns:
         The final answer as a plain string.
     """
+    # Clear any charts from a previous run
+    clear_generated_charts()
+
     system_prompt = _build_system_prompt()
     provider = get_provider(system_prompt)
 
@@ -120,7 +127,14 @@ def run_agent(question: str, verbose: bool = True) -> str:
 
         response = provider.continue_with_tool_results(response.tool_calls, results)
 
-    if verbose:
-        print(f"\nDone. {iteration} tool call(s).\n")
+    answer = response.text or "(No text response from agent.)"
 
-    return response.text or "(No text response from agent.)"
+    # Generate the HTML report, embedding any charts produced during the run
+    chart_paths = get_generated_charts()
+    report_path = generate_report(question, answer, chart_paths)
+
+    if verbose:
+        print(f"\nDone. {iteration} tool call(s).")
+        print(f"Report saved: {report_path}\n")
+
+    return answer
