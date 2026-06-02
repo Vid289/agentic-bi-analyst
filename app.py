@@ -16,7 +16,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from src.agent import run_agent
-from src.tools import get_generated_charts
+from src.tools import get_generated_charts, get_generated_dashboards
 from src.config import CONFIG
 
 
@@ -35,260 +35,239 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 html, body, [class*="css"] {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/* ── Dark sidebar ─────────────────────────────────── */
+/* ── Sidebar ──────────────────────────────────────── */
 
 [data-testid="stSidebar"] {
-    background-color: #0d1117 !important;
-    border-right: 1px solid #21262d !important;
+    background-color: #1e293b !important;
+    border-right: 1px solid #334155 !important;
 }
 [data-testid="stSidebar"] p,
 [data-testid="stSidebar"] span,
 [data-testid="stSidebar"] label {
-    color: #c9d1d9 !important;
+    color: #cbd5e1 !important;
 }
 [data-testid="stSidebar"] hr {
-    border-color: #21262d !important;
+    border-color: #334155 !important;
     margin: 0.5rem 0 !important;
 }
 [data-testid="stSidebar"]::-webkit-scrollbar { width: 4px; }
-[data-testid="stSidebar"]::-webkit-scrollbar-track { background: #0d1117; }
+[data-testid="stSidebar"]::-webkit-scrollbar-track { background: #1e293b; }
 [data-testid="stSidebar"]::-webkit-scrollbar-thumb {
-    background: #30363d;
-    border-radius: 2px;
+    background: #475569;
+    border-radius: 4px;
 }
 
-/* Sidebar query buttons */
+/* Sidebar buttons */
 [data-testid="stSidebar"] button {
-    background: #161b22 !important;
-    border: 1px solid #30363d !important;
-    color: #8b949e !important;
-    font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
-    font-size: 0.72rem !important;
+    background: transparent !important;
+    border: 1px solid #334155 !important;
+    color: #94a3b8 !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 0.82rem !important;
     text-align: left !important;
     justify-content: flex-start !important;
-    border-radius: 6px !important;
-    padding: 0.38rem 0.7rem !important;
+    border-radius: 8px !important;
+    padding: 0.45rem 0.85rem !important;
     line-height: 1.45 !important;
-    transition: background 0.15s, border-color 0.15s, color 0.15s !important;
+    transition: all 0.15s !important;
 }
 [data-testid="stSidebar"] button:hover {
-    background: rgba(56, 139, 253, 0.1) !important;
-    border-color: #388bfd !important;
-    color: #58a6ff !important;
+    background: rgba(99, 102, 241, 0.1) !important;
+    border-color: #6366f1 !important;
+    color: #a5b4fc !important;
 }
-[data-testid="stSidebar"] button:hover p,
 [data-testid="stSidebar"] button p {
-    font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
-    font-size: 0.72rem !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 0.82rem !important;
+    color: #94a3b8 !important;
 }
-[data-testid="stSidebar"] button:hover p { color: #58a6ff !important; }
-[data-testid="stSidebar"] button p      { color: #8b949e !important; }
+[data-testid="stSidebar"] button:hover p {
+    color: #a5b4fc !important;
+}
 
-/* ── Sidebar: brand ──────────────────────────────── */
+/* ── Sidebar: brand block ─────────────────────────── */
 
 .sb-brand {
-    padding: 0.3rem 0 0.5rem 0;
-}
-.sb-brand-name {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.88rem;
-    font-weight: 600;
-    color: #e6edf3;
-    letter-spacing: 0.01em;
-}
-.sb-brand-ver {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.66rem;
-    color: #484f58;
-    margin-top: 0.18rem;
-}
-
-/* ── Sidebar: status rows ─────────────────────────── */
-
-.sb-status {
     display: flex;
     align-items: center;
-    gap: 0.55rem;
-    background: #161b22;
-    border: 1px solid #21262d;
-    border-radius: 6px;
-    padding: 0.42rem 0.7rem;
-    margin: 0.28rem 0;
+    gap: 0.65rem;
+    padding: 0.25rem 0 0.5rem 0;
 }
-.dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    flex-shrink: 0;
+.sb-brand-icon {
+    font-size: 1.6rem;
+    line-height: 1;
 }
-.dot-green { background: #3fb950; box-shadow: 0 0 5px #3fb95066; }
-.dot-blue  { background: #58a6ff; box-shadow: 0 0 5px #58a6ff55; }
-.sb-status-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.69rem;
-    color: #8b949e;
-    flex: 1;
+.sb-brand-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #f1f5f9;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
 }
-.sb-status-val       { font-family: 'JetBrains Mono', monospace; font-size: 0.69rem; color: #3fb950; font-weight: 500; }
-.sb-status-val-blue  { font-family: 'JetBrains Mono', monospace; font-size: 0.69rem; color: #58a6ff; font-weight: 500; }
+.sb-brand-sub {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 0.08rem;
+}
+
+/* ── Sidebar: status pills ────────────────────────── */
+
+.sb-pills {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin: 0.1rem 0;
+}
+.sb-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    border-radius: 20px;
+    padding: 0.22rem 0.65rem;
+    font-size: 0.73rem;
+    font-weight: 500;
+}
+.pill-green { background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.3); color: #4ade80; }
+.pill-blue  { background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); color: #818cf8; }
+.pill-dot   { width: 6px; height: 6px; border-radius: 50%; }
+.dot-on     { background: #4ade80; }
+.dot-model  { background: #818cf8; }
 
 /* ── Sidebar: section header ──────────────────────── */
 
-.sb-head {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.6rem;
+.sb-section {
+    font-size: 0.68rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: #484f58;
-    margin: 0.1rem 0 0.4rem 0;
-    padding-left: 0.1rem;
+    letter-spacing: 0.1em;
+    color: #475569;
+    margin: 0.1rem 0 0.45rem 0;
 }
 
-/* ── Sidebar: session stats grid ─────────────────── */
+/* ── Sidebar: session stats ───────────────────────── */
 
 .sb-stats {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    gap: 0.35rem;
-    margin-bottom: 0.1rem;
+    gap: 0.4rem;
 }
 .sb-stat {
-    background: #161b22;
-    border: 1px solid #21262d;
-    border-radius: 6px;
-    padding: 0.45rem 0.35rem;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 0.55rem 0.4rem;
     text-align: center;
 }
 .sb-stat-val {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #e6edf3;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #f1f5f9;
     line-height: 1;
 }
 .sb-stat-lbl {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.6rem;
-    color: #484f58;
-    margin-top: 0.25rem;
+    font-size: 0.65rem;
+    color: #64748b;
+    margin-top: 0.2rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
 }
 
-/* ── Sidebar: schema tree ─────────────────────────── */
+/* ── Sidebar: schema list ─────────────────────────── */
 
-.schema-tree { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; padding: 0.1rem 0; }
-.schema-row {
+.schema-list { margin: 0; padding: 0; }
+.schema-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0.3rem 0.5rem;
-    border-radius: 5px;
+    border-radius: 6px;
     transition: background 0.12s;
     cursor: default;
 }
-.schema-row:hover { background: #161b22; }
-.schema-row-left  { display: flex; align-items: center; gap: 0.45rem; }
-.schema-prefix    { color: #30363d; font-size: 0.65rem; }
-.schema-tbl       { color: #79c0ff; }
-.schema-cnt       { color: #484f58; font-size: 0.66rem; }
-.schema-type      { font-size: 0.6rem; padding: 0.05rem 0.35rem; border-radius: 3px; margin-left: 0.3rem; }
-.type-master      { background: #0f3d21; color: #3fb950; border: 1px solid #1a5c30; }
-.type-txn         { background: #0c2c4a; color: #58a6ff; border: 1px solid #1a4775; }
-.type-event       { background: #3d2800; color: #ffa657; border: 1px solid #5e3d00; }
+.schema-item:hover { background: rgba(255,255,255,0.04); }
+.schema-item-left  { display: flex; align-items: center; gap: 0.5rem; }
+.schema-dot        { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.schema-name       { font-size: 0.8rem; color: #cbd5e1; }
+.schema-badge {
+    font-size: 0.6rem;
+    padding: 0.05rem 0.4rem;
+    border-radius: 4px;
+    font-weight: 500;
+}
+.badge-ref   { background: rgba(34,197,94,0.12); color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
+.badge-txn   { background: rgba(99,102,241,0.12); color: #818cf8; border: 1px solid rgba(99,102,241,0.2); }
+.badge-event { background: rgba(251,146,60,0.12); color: #fb923c; border: 1px solid rgba(251,146,60,0.2); }
+.schema-count { font-size: 0.72rem; color: #475569; }
 
 /* ── Sidebar: pattern items ───────────────────────── */
 
-.pattern-list { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; padding: 0.1rem 0; }
-.pattern-row {
+.pattern-item {
     display: flex;
     align-items: flex-start;
     gap: 0.5rem;
-    padding: 0.28rem 0.5rem;
-    border-radius: 5px;
-    color: #8b949e;
+    padding: 0.32rem 0.5rem;
+    border-radius: 6px;
     transition: background 0.12s;
-    cursor: default;
-    line-height: 1.4;
 }
-.pattern-row:hover { background: #161b22; color: #c9d1d9; }
-.pattern-icon { color: #ffa657; flex-shrink: 0; margin-top: 0.05rem; }
+.pattern-item:hover { background: rgba(255,255,255,0.04); }
+.pattern-marker { color: #f59e0b; font-size: 0.75rem; flex-shrink: 0; margin-top: 0.05rem; }
+.pattern-text   { font-size: 0.78rem; color: #94a3b8; line-height: 1.4; }
+.pattern-period { font-size: 0.7rem; color: #475569; }
 
-/* ── Sidebar: capabilities list ──────────────────── */
+/* ── Hero ─────────────────────────────────────────── */
 
-.cap-list { font-family: 'JetBrains Mono', monospace; font-size: 0.71rem; padding: 0.1rem 0; }
-.cap-row {
+.hero {
+    background: linear-gradient(135deg, #1e3a5f 0%, #1e293b 60%, #162032 100%);
+    border: 1px solid #334155;
+    border-radius: 16px;
+    padding: 2rem 2.5rem;
+    margin-bottom: 1.75rem;
+    color: white;
+}
+.hero-title {
+    font-size: 1.7rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+    margin: 0 0 0.5rem 0;
+    color: #f1f5f9;
+}
+.hero-sub {
+    color: #94a3b8;
+    font-size: 0.92rem;
+    line-height: 1.6;
+    max-width: 580px;
+    margin: 0;
+}
+.hero-tags {
     display: flex;
-    align-items: flex-start;
     gap: 0.5rem;
-    padding: 0.27rem 0.5rem;
-    border-radius: 5px;
-    color: #8b949e;
-    transition: background 0.12s;
-    line-height: 1.4;
+    flex-wrap: wrap;
+    margin-top: 1.25rem;
 }
-.cap-row:hover { background: #161b22; color: #c9d1d9; }
-.cap-dot { width: 5px; height: 5px; border-radius: 50%; background: #388bfd; flex-shrink: 0; margin-top: 0.38rem; }
-.cap-name { color: #c9d1d9; }
-.cap-desc { color: #484f58; margin-left: 0.2rem; }
-
-/* ── Terminal hero ────────────────────────────────── */
-
-.terminal-window {
-    background: #161b22;
-    border: 1px solid #30363d;
-    border-radius: 12px;
-    overflow: hidden;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+.hero-tag {
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
+    padding: 0.2rem 0.75rem;
+    font-size: 0.75rem;
+    color: #94a3b8;
 }
-.terminal-bar {
-    background: #21262d;
-    padding: 0.52rem 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    border-bottom: 1px solid #30363d;
-}
-.tr { width: 11px; height: 11px; border-radius: 50%; }
-.tr-red    { background: #ff5f57; }
-.tr-yellow { background: #febc2e; }
-.tr-green  { background: #28c840; }
-.terminal-tab {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.73rem;
-    color: #8b949e;
-    margin-left: 0.3rem;
-}
-.terminal-body {
-    padding: 1.2rem 1.6rem 1.35rem 1.6rem;
-    font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
-    font-size: 0.81rem;
-    line-height: 1.85;
-    color: #c9d1d9;
-}
-.t-ps1  { color: #3fb950; }
-.t-cmd  { color: #e6edf3; font-weight: 500; }
-.t-flag { color: #79c0ff; }
-.t-val  { color: #ffa657; }
-.t-ok   { color: #3fb950; }
-.t-dim  { color: #484f58; }
-.t-gray { color: #8b949e; }
 
 /* ── Tool log ─────────────────────────────────────── */
 
 .tool-log {
-    background: #0d1117;
-    border: 1px solid #21262d;
+    background: #0f172a;
+    border: 1px solid #1e293b;
     border-radius: 10px;
     padding: 1rem 1.25rem;
-    font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Menlo', monospace;
     font-size: 0.775rem;
     line-height: 1.7;
     white-space: pre-wrap;
@@ -300,31 +279,29 @@ html, body, [class*="css"] {
 /* ── Empty state ──────────────────────────────────── */
 
 .empty-hint {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.8rem;
-    color: #484f58;
-    margin-bottom: 0.6rem;
+    font-size: 0.88rem;
+    color: #64748b;
+    margin-bottom: 0.25rem;
 }
 .empty-category {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.6rem;
+    font-size: 0.7rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: #388bfd;
-    margin: 1rem 0 0.4rem 0;
+    letter-spacing: 0.1em;
+    color: #6366f1;
+    margin: 1.1rem 0 0.4rem 0;
 }
 
-/* ── Chat: question number ────────────────────────── */
+/* ── Chat: question label ─────────────────────────── */
 
 .q-num {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    color: #484f58;
-    margin-bottom: 0.2rem;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.25rem;
 }
-
-/* ── Copy button (rendered via components.html) ──── */
 
 </style>
 """, unsafe_allow_html=True)
@@ -332,50 +309,45 @@ html, body, [class*="css"] {
 
 # --- constants ---
 
-# Table type determines the colour dot in the schema tree
 _TABLE_TYPES = {
-    "customers":       "master",
-    "plans":           "master",
-    "subscriptions":   "txn",
-    "invoices":        "txn",
-    "usage_events":    "txn",
-    "support_tickets": "event",
-    "churn_events":    "event",
+    "customers":       ("ref",   "#4ade80", "badge-ref"),
+    "plans":           ("ref",   "#4ade80", "badge-ref"),
+    "subscriptions":   ("txn",   "#818cf8", "badge-txn"),
+    "invoices":        ("txn",   "#818cf8", "badge-txn"),
+    "usage_events":    ("txn",   "#818cf8", "badge-txn"),
+    "support_tickets": ("event", "#fb923c", "badge-event"),
+    "churn_events":    ("event", "#fb923c", "badge-event"),
 }
-_TYPE_LABEL = {"master": "ref", "txn": "txn", "event": "event"}
 
-# Preferred display order for the schema tree
 _TABLE_ORDER = [
     "customers", "plans", "subscriptions",
     "invoices", "usage_events", "support_tickets", "churn_events",
 ]
 
-# Known patterns baked into the synthetic dataset
 PATTERNS = [
-    ("Pro price increase → churn spike", "Jun 2025"),
-    ("EMEA pricing experiment → enterprise churn", "Q3 2025"),
-    ("Low day-30 usage → 2× higher churn rate", "all time"),
-    ("Enterprise: more tickets, yet higher CSAT", "all time"),
+    ("Pro plan price increase triggered a churn spike",  "Jun 2025"),
+    ("EMEA pricing experiment led to enterprise churn",  "Q3 2025"),
+    ("Low day-30 usage doubles the long-term churn rate", "all time"),
+    ("Enterprise files more tickets but scores higher CSAT", "all time"),
 ]
 
 TOOLS = [
-    ("run_sql",              "execute SELECT queries"),
-    ("detect_anomalies",     "flag statistical outliers"),
-    ("compare_cohort_rates", "z-test two groups"),
-    ("investigate_drop",     "decompose a metric change"),
-    ("generate_chart",       "line / bar charts"),
-    ("list_tables",          "explore the schema"),
-    ("describe_table",       "inspect columns + samples"),
+    ("run_sql",              "Execute SELECT queries against DuckDB"),
+    ("detect_anomalies",     "Flag statistical outliers in a time series"),
+    ("compare_cohort_rates", "Z-test two groups for significance"),
+    ("investigate_drop",     "Decompose a before/after metric change"),
+    ("generate_chart",       "Render Plotly line or bar charts"),
+    ("list_tables",          "List available tables"),
+    ("describe_table",       "Inspect columns and sample rows"),
 ]
 
 EXAMPLES = [
-    # (category, question)
-    ("revenue",  "Why did MRR drop in Q3 2025?"),
-    ("revenue",  "Which acquisition channels produce the highest LTV customers?"),
-    ("churn",    "Which customer segments have the highest churn rate?"),
-    ("churn",    "Compare enterprise vs pro plan churn rates"),
-    ("ops",      "What is the relationship between support tickets and churn?"),
-    ("ops",      "What happened to EMEA customers in Q3 2025?"),
+    ("revenue", "Why did MRR drop in Q3 2025?"),
+    ("revenue", "Which acquisition channels produce the highest LTV customers?"),
+    ("churn",   "Which customer segments have the highest churn rate?"),
+    ("churn",   "Compare enterprise vs pro plan churn rates"),
+    ("ops",     "What is the relationship between support tickets and churn?"),
+    ("ops",     "What happened to EMEA customers in Q3 2025?"),
 ]
 
 
@@ -408,15 +380,14 @@ _ordered_tables += [t for t in schema_info if t not in _TABLE_ORDER]
 
 # --- session state ---
 
-if "messages"      not in st.session_state: st.session_state.messages      = []
+if "messages"         not in st.session_state: st.session_state.messages         = []
 if "trigger_question" not in st.session_state: st.session_state.trigger_question = None
-if "session_stats" not in st.session_state:
+if "session_stats"    not in st.session_state:
     st.session_state.session_stats = {"questions": 0, "tool_calls": 0, "charts": 0}
 
 
 # --- resolve input early ---
-# st.chat_input renders at the bottom regardless of where it's called in the script.
-# Reading the value here lets us suppress the empty-state cards if a question is incoming.
+# st.chat_input renders at the bottom regardless of call position.
 
 _typed   = st.chat_input("Ask a business question about Nimbus Analytics...")
 _clicked = st.session_state.trigger_question
@@ -426,45 +397,30 @@ question: str | None = _clicked or _typed or None
 stats = st.session_state.session_stats
 
 
-# --- build sidebar HTML blocks ---
+# --- build sidebar HTML ---
 
-# Schema tree rows
-schema_rows_html = ""
-for i, name in enumerate(_ordered_tables):
-    count    = schema_info.get(name, 0)
-    prefix   = "└─" if i == len(_ordered_tables) - 1 else "├─"
-    ttype    = _TABLE_TYPES.get(name, "txn")
-    tlabel   = _TYPE_LABEL[ttype]
-    dot_col  = {"master": "#3fb950", "txn": "#58a6ff", "event": "#ffa657"}[ttype]
-    schema_rows_html += f"""
-    <div class="schema-row">
-        <div class="schema-row-left">
-            <span class="schema-prefix">{prefix}</span>
-            <span style="width:7px;height:7px;border-radius:50%;
-                         background:{dot_col};display:inline-block;flex-shrink:0;"></span>
-            <span class="schema-tbl">{name}</span>
-            <span class="schema-type type-{ttype}">{tlabel}</span>
+schema_html = ""
+for name in _ordered_tables:
+    ttype, dot_col, badge_cls = _TABLE_TYPES.get(name, ("txn", "#818cf8", "badge-txn"))
+    tlabel = ttype
+    count  = schema_info.get(name, 0)
+    schema_html += f"""
+    <div class="schema-item">
+        <div class="schema-item-left">
+            <span class="schema-dot" style="background:{dot_col}"></span>
+            <span class="schema-name">{name}</span>
+            <span class="schema-badge {badge_cls}">{tlabel}</span>
         </div>
-        <span class="schema-cnt">{count:,}</span>
+        <span class="schema-count">{count:,}</span>
     </div>"""
 
-# Pattern rows
-pattern_rows_html = "".join(
-    f'<div class="pattern-row">'
-    f'<span class="pattern-icon">◈</span>'
-    f'<span>{desc} <span style="color:#30363d">· {period}</span></span>'
+pattern_html = "".join(
+    f'<div class="pattern-item">'
+    f'<span class="pattern-marker">◆</span>'
+    f'<span class="pattern-text">{text}'
+    f'  <span class="pattern-period">{period}</span></span>'
     f'</div>'
-    for desc, period in PATTERNS
-)
-
-# Tools rows
-tools_rows_html = "".join(
-    f'<div class="cap-row">'
-    f'<div class="cap-dot"></div>'
-    f'<div><span class="cap-name">{name}</span>'
-    f'<span class="cap-desc"> — {desc}</span></div>'
-    f'</div>'
-    for name, desc in TOOLS
+    for text, period in PATTERNS
 )
 
 provider_label = "Anthropic Claude" if CONFIG.provider == "anthropic" else "Google Gemini"
@@ -475,104 +431,96 @@ provider_label = "Anthropic Claude" if CONFIG.provider == "anthropic" else "Goog
 with st.sidebar:
 
     # Brand
-    st.markdown("""
+    st.markdown(f"""
     <div class="sb-brand">
-        <div class="sb-brand-name">▸ nimbus-bi-agent</div>
-        <div class="sb-brand-ver">v1.0 · agentic sql analyst</div>
+        <span class="sb-brand-icon">📊</span>
+        <div>
+            <div class="sb-brand-name">Nimbus Analytics</div>
+            <div class="sb-brand-sub">Agentic BI Analyst</div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # Connection + model status
+    # Status pills
     st.markdown(f"""
-    <div class="sb-status">
-        <div class="dot dot-green"></div>
-        <span class="sb-status-label">database</span>
-        <span class="sb-status-val">connected</span>
-    </div>
-    <div class="sb-status">
-        <div class="dot dot-blue"></div>
-        <span class="sb-status-label">model</span>
-        <span class="sb-status-val-blue">{CONFIG.active_model}</span>
+    <div class="sb-pills">
+        <span class="sb-pill pill-green">
+            <span class="pill-dot dot-on"></span> Connected
+        </span>
+        <span class="sb-pill pill-blue">
+            <span class="pill-dot dot-model"></span> {CONFIG.active_model}
+        </span>
     </div>
     """, unsafe_allow_html=True)
 
     st.divider()
 
-    # Session stats — updates after every question
-    st.markdown('<div class="sb-head">this session</div>', unsafe_allow_html=True)
+    # Session stats
+    st.markdown('<div class="sb-section">This session</div>', unsafe_allow_html=True)
     st.markdown(f"""
     <div class="sb-stats">
         <div class="sb-stat">
             <div class="sb-stat-val">{stats["questions"]}</div>
-            <div class="sb-stat-lbl">queries</div>
+            <div class="sb-stat-lbl">Queries</div>
         </div>
         <div class="sb-stat">
             <div class="sb-stat-val">{stats["tool_calls"]}</div>
-            <div class="sb-stat-lbl">tool calls</div>
+            <div class="sb-stat-lbl">Tool calls</div>
         </div>
         <div class="sb-stat">
             <div class="sb-stat-val">{stats["charts"]}</div>
-            <div class="sb-stat-lbl">charts</div>
+            <div class="sb-stat-lbl">Charts</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
     st.divider()
 
-    # Schema explorer
+    # Schema
     st.markdown(
-        f'<div class="sb-head">saas.duckdb &nbsp;·&nbsp; Jan 2024 – Dec 2025</div>',
+        f'<div class="sb-section">Database &nbsp;·&nbsp; Jan 2024 – Dec 2025</div>',
         unsafe_allow_html=True,
     )
-    st.markdown(f'<div class="schema-tree">{schema_rows_html}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="schema-list">{schema_html}</div>', unsafe_allow_html=True)
 
     st.divider()
 
-    # Built-in patterns — teasers for the analyst to find
-    st.markdown('<div class="sb-head">patterns in the data</div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="pattern-list">{pattern_rows_html}</div>', unsafe_allow_html=True)
+    # Patterns
+    st.markdown('<div class="sb-section">Patterns in the data</div>', unsafe_allow_html=True)
+    st.markdown(pattern_html, unsafe_allow_html=True)
 
     st.divider()
 
-    # Tools
-    st.markdown('<div class="sb-head">tools available</div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="cap-list">{tools_rows_html}</div>', unsafe_allow_html=True)
-
-    st.divider()
-
-    # Suggested queries
-    st.markdown('<div class="sb-head">suggested queries</div>', unsafe_allow_html=True)
+    # Suggested questions
+    st.markdown('<div class="sb-section">Suggested questions</div>', unsafe_allow_html=True)
     for i, (_, ex) in enumerate(EXAMPLES):
-        if st.button(f"> {ex}", key=f"sb_{i}", use_container_width=True):
+        if st.button(ex, key=f"sb_{i}", use_container_width=True):
             st.session_state.trigger_question = ex
             st.rerun()
 
     st.divider()
 
-    if st.button("× clear conversation", key="clear_btn", use_container_width=True):
+    if st.button("Clear conversation", key="clear_btn", use_container_width=True):
         st.session_state.messages = []
         st.session_state.session_stats = {"questions": 0, "tool_calls": 0, "charts": 0}
         st.rerun()
 
 
-# --- terminal hero ---
+# --- hero ---
 
 st.markdown(f"""
-<div class="terminal-window">
-    <div class="terminal-bar">
-        <div class="tr tr-red"></div>
-        <div class="tr tr-yellow"></div>
-        <div class="tr tr-green"></div>
-        <span class="terminal-tab">nimbus-bi-agent — zsh</span>
+<div class="hero">
+    <div class="hero-title">📊 Agentic BI Analyst</div>
+    <div class="hero-sub">
+        Ask any business question about Nimbus Analytics. The agent queries the database,
+        runs statistical tests, and explains exactly what it found — step by step.
     </div>
-    <div class="terminal-body">
-<span class="t-ps1">❯</span> <span class="t-cmd">python -m nimbus_agent</span> <span class="t-flag">--db</span> <span class="t-val">data/saas.duckdb</span> <span class="t-flag">--model</span> <span class="t-val">{CONFIG.active_model}</span> <span class="t-flag">--provider</span> <span class="t-val">{CONFIG.provider}</span>
-
-<span class="t-ok">✓</span> <span class="t-gray">database connected  </span><span style="color:#c9d1d9">{total_rows:,} rows across {table_count} tables  (Jan 2024 – Dec 2025)</span>
-<span class="t-ok">✓</span> <span class="t-gray">schema loaded       </span><span style="color:#c9d1d9">{", ".join(_ordered_tables)}</span>
-<span class="t-ok">✓</span> <span class="t-gray">tools registered    </span><span style="color:#c9d1d9">run_sql · detect_anomalies · compare_cohort_rates · investigate_drop · generate_chart</span>
-<span class="t-ok">✓</span> <span class="t-gray">session             </span><span style="color:#c9d1d9">{stats["questions"]} quer{"y" if stats["questions"] == 1 else "ies"} · {stats["tool_calls"]} tool calls · {stats["charts"]} charts generated</span>
-<span class="t-ok">✓</span> <span class="t-gray">agent ready         </span><span style="color:#3fb950">ask a question to begin ↓</span>
+    <div class="hero-tags">
+        <span class="hero-tag">DuckDB · {total_rows:,} rows</span>
+        <span class="hero-tag">{table_count} tables · 2024–2025</span>
+        <span class="hero-tag">SQL + Statistics + Charts</span>
+        <span class="hero-tag">{provider_label}</span>
+        <span class="hero-tag">{stats["questions"]} quer{"y" if stats["questions"] == 1 else "ies"} this session</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -588,32 +536,34 @@ def _format_tool_log(lines: list[str]) -> str:
             continue
         esc = html_lib.escape(line)
         if line.strip().startswith("["):
-            parts.append(f'<span style="color:#79c0ff">{esc}</span>')
+            parts.append(f'<span style="color:#818cf8">{esc}</span>')
         elif line.startswith("   ->"):
             parts.append(f'<span style="color:#86efac">{esc}</span>')
         else:
-            parts.append(f'<span style="color:#8b949e">{esc}</span>')
+            parts.append(f'<span style="color:#64748b">{esc}</span>')
     return "\n".join(parts)
 
 
 def _copy_button(text: str, key: str) -> None:
     """Render a copy-to-clipboard button using the browser clipboard API."""
-    # json.dumps safely escapes the text as a JS string literal
     js_str = json.dumps(text)
     components.html(
         f"""
         <button
             onclick="navigator.clipboard.writeText({js_str}).then(()=>{{
-                this.textContent='✓ copied';
-                this.style.color='#3fb950';
-                this.style.borderColor='#3fb950';
-                setTimeout(()=>{{ this.textContent='📋 copy answer'; this.style.color=''; this.style.borderColor=''; }}, 1800);
+                this.textContent='Copied';
+                this.style.color='#4ade80';
+                this.style.borderColor='#4ade80';
+                setTimeout(()=>{{
+                    this.textContent='Copy answer';
+                    this.style.color='';
+                    this.style.borderColor='';
+                }}, 1800);
             }})"
-            style="background:#161b22;border:1px solid #30363d;color:#8b949e;
-                   border-radius:5px;padding:3px 11px;
-                   font-family:'JetBrains Mono','Fira Code',monospace;
-                   font-size:11px;cursor:pointer;transition:all 0.2s;">
-            📋 copy answer
+            style="background:transparent;border:1px solid #334155;color:#64748b;
+                   border-radius:6px;padding:4px 12px;font-family:'Inter',sans-serif;
+                   font-size:12px;cursor:pointer;transition:all 0.2s;">
+            Copy answer
         </button>
         """,
         height=34,
@@ -621,16 +571,16 @@ def _copy_button(text: str, key: str) -> None:
 
 
 def _render_assistant(msg: dict, idx: int) -> None:
-    """Render an assistant message: answer, copy button, tool log, charts, download."""
+    """Render an assistant message: answer, actions, tool log, charts, download."""
     st.markdown(msg["content"])
 
-    # Action row: copy + investigation steps + download
-    col_copy, col_gap = st.columns([1, 4])
+    # Action row
+    col_copy, col_gap = st.columns([1, 5])
     with col_copy:
         _copy_button(msg["content"], key=f"cp_{idx}")
 
     if msg.get("tool_log"):
-        with st.expander("🔍 Investigation steps"):
+        with st.expander("View investigation steps"):
             formatted = _format_tool_log(msg["tool_log"].split("\n"))
             st.markdown(
                 f'<div class="tool-log">{formatted}</div>',
@@ -642,7 +592,7 @@ def _render_assistant(msg: dict, idx: int) -> None:
 
     if msg.get("report_bytes"):
         st.download_button(
-            label="⬇ Download full report",
+            label="Download full report",
             data=msg["report_bytes"],
             file_name="report.html",
             mime="text/html",
@@ -655,44 +605,40 @@ def _render_assistant(msg: dict, idx: int) -> None:
 for idx, msg in enumerate(st.session_state.messages):
     with st.chat_message(msg["role"]):
         if msg["role"] == "user":
-            # Show question number above the message
-            q_num = sum(1 for m in st.session_state.messages[:idx+1] if m["role"] == "user")
-            st.markdown(
-                f'<div class="q-num">Q{q_num}</div>',
-                unsafe_allow_html=True,
-            )
+            q_num = sum(1 for m in st.session_state.messages[:idx + 1] if m["role"] == "user")
+            st.markdown(f'<div class="q-num">Question {q_num}</div>', unsafe_allow_html=True)
             st.markdown(msg["content"])
         else:
             _render_assistant(msg, idx)
 
 
 # --- empty state ---
-# Show category-organised prompt cards when no conversation has started yet.
 
 if not st.session_state.messages and not question:
     st.markdown(
-        '<p class="empty-hint"># select a prompt to begin, or type your own question below</p>',
+        '<p class="empty-hint">Not sure where to start? Pick a question below.</p>',
         unsafe_allow_html=True,
     )
 
     categories = [
-        ("revenue",  "📈 Revenue"),
-        ("churn",    "📉 Churn"),
-        ("ops",      "🔧 Operations"),
+        ("revenue", "Revenue"),
+        ("churn",   "Churn"),
+        ("ops",     "Operations"),
     ]
-
-    # Group examples by category
     by_cat: dict[str, list[str]] = {}
     for cat, q in EXAMPLES:
         by_cat.setdefault(cat, []).append(q)
 
     for cat_key, cat_label in categories:
-        st.markdown(f'<div class="empty-category">{cat_label}</div>', unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="empty-category">{cat_label}</div>',
+            unsafe_allow_html=True,
+        )
         qs = by_cat.get(cat_key, [])
         cols = st.columns(len(qs)) if qs else []
-        for i, (col, q) in enumerate(zip(cols, qs)):
+        for col, q in zip(cols, qs):
             with col:
-                if st.button(q, key=f"es_{cat_key}_{i}", use_container_width=True):
+                if st.button(q, key=f"es_{q[:25]}", use_container_width=True):
                     st.session_state.trigger_question = q
                     st.rerun()
 
@@ -705,7 +651,7 @@ if question:
     # User turn
     st.session_state.messages.append({"role": "user", "content": question})
     with st.chat_message("user"):
-        st.markdown(f'<div class="q-num">Q{q_num}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="q-num">Question {q_num}</div>', unsafe_allow_html=True)
         st.markdown(question)
 
     # Assistant turn
@@ -722,29 +668,27 @@ if question:
 
             n_tools = sum(1 for l in tool_log_lines if l.strip().startswith("["))
             status.update(
-                label=f"Investigation complete · {n_tools} tool calls",
+                label=f"Done · {n_tools} tool calls",
                 state="complete",
                 expanded=False,
             )
 
         st.markdown(answer)
 
-        # Copy button
-        col_copy, _ = st.columns([1, 4])
+        col_copy, _ = st.columns([1, 5])
         with col_copy:
             _copy_button(answer, key="cp_current")
 
-        # Tool log
         tool_log_text = "\n".join(l for l in tool_log_lines if l.strip())
         if tool_log_text:
-            with st.expander("🔍 Investigation steps"):
+            with st.expander("View investigation steps"):
                 formatted = _format_tool_log(tool_log_lines)
                 st.markdown(
                     f'<div class="tool-log">{formatted}</div>',
                     unsafe_allow_html=True,
                 )
 
-        # Charts — read HTML now before a future run can overwrite the files
+        # Read chart HTML now before a future run can overwrite the files
         chart_htmls: list[str] = []
         for path in chart_paths:
             if Path(path).exists():
@@ -752,13 +696,12 @@ if question:
                 chart_htmls.append(html_content)
                 components.html(html_content, height=420, scrolling=False)
 
-        # Report download
         report_bytes: bytes | None = None
         report_path = Path("output/report.html")
         if report_path.exists():
             report_bytes = report_path.read_bytes()
             st.download_button(
-                label="⬇ Download full report",
+                label="Download full report",
                 data=report_bytes,
                 file_name="report.html",
                 mime="text/html",
@@ -770,7 +713,6 @@ if question:
         st.session_state.session_stats["tool_calls"] += n_tools
         st.session_state.session_stats["charts"]     += len(chart_htmls)
 
-        # Persist to session state
         st.session_state.messages.append({
             "role":         "assistant",
             "content":      answer,
