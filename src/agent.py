@@ -67,28 +67,34 @@ def _build_system_prompt() -> str:
 
 # --- agent loop ---
 
-def run_agent(question: str, verbose: bool = True) -> str:
+def run_agent(question: str, verbose: bool = True, write_fn=None) -> str:
     """
     Run the agent loop for a business question.
 
     Args:
         question: The business question to investigate.
-        verbose:  If True, prints each tool call as it runs.
+        verbose:  If True, prints each tool call to stdout (used by the CLI).
+        write_fn: Optional callback for status messages. When provided (e.g.
+                  from the Streamlit app), messages go there instead of stdout.
 
     Returns:
         The final answer as a plain string.
     """
-    # Clear any charts from a previous run
+
+    def _log(msg: str) -> None:
+        # Route output to the Streamlit callback or stdout depending on context
+        if write_fn:
+            write_fn(msg)
+        elif verbose:
+            print(msg)
+
+    # Clear any charts left over from a previous run
     clear_generated_charts()
 
     system_prompt = _build_system_prompt()
     provider = get_provider(system_prompt)
 
-    if verbose:
-        print(f"\n{'='*60}")
-        print(f"Question: {question}")
-        print(f"Provider: {CONFIG.provider} / {CONFIG.active_model}")
-        print(f"{'='*60}\n")
+    _log(f"Provider: {CONFIG.provider} / {CONFIG.active_model}\n")
 
     response = provider.start(question)
     iteration = 0
@@ -96,7 +102,6 @@ def run_agent(question: str, verbose: bool = True) -> str:
     while response.stop_reason == "tool_use":
         iteration += 1
 
-        # Stop if we've hit the iteration cap
         if iteration > CONFIG.max_agent_iterations:
             return (
                 f"Stopped after {CONFIG.max_agent_iterations} tool calls "
@@ -106,35 +111,34 @@ def run_agent(question: str, verbose: bool = True) -> str:
         results: list[str] = []
 
         for tc in response.tool_calls:
-            if verbose:
-                print(f"[{iteration}] tool: {tc.name}", end="")
-                if tc.name == "run_sql":
-                    # Show a trimmed preview of the SQL on the next line
-                    sql_preview = tc.args.get("query", "").replace("\n", " ").strip()
-                    print(f"\n   SQL: {sql_preview[:140]}{'...' if len(sql_preview) > 140 else ''}")
-                elif tc.name == "describe_table":
-                    print(f"({tc.args.get('table_name', '')})")
-                else:
-                    print()
+            # Build a readable label for this tool call
+            if tc.name == "run_sql":
+                sql_preview = tc.args.get("query", "").replace("\n", " ").strip()
+                label = f"[{iteration}] run_sql: {sql_preview[:120]}{'...' if len(sql_preview) > 120 else ''}"
+            elif tc.name == "describe_table":
+                label = f"[{iteration}] describe_table({tc.args.get('table_name', '')})"
+            elif tc.name == "generate_chart":
+                label = f"[{iteration}] generate_chart: {tc.args.get('title', '')}"
+            else:
+                label = f"[{iteration}] {tc.name}"
+
+            _log(label)
 
             result = execute_tool(tc.name, tc.args)
             results.append(result)
 
-            if verbose:
-                # Print just the first line as a quick preview
-                preview = result.split("\n")[0][:100]
-                print(f"   -> {preview}\n")
+            # Show the first line of the result as a quick preview
+            preview = result.split("\n")[0][:100]
+            _log(f"   -> {preview}\n")
 
         response = provider.continue_with_tool_results(response.tool_calls, results)
 
     answer = response.text or "(No text response from agent.)"
 
-    # Generate the HTML report, embedding any charts produced during the run
+    # Write the HTML report with any charts generated during the run
     chart_paths = get_generated_charts()
     report_path = generate_report(question, answer, chart_paths)
 
-    if verbose:
-        print(f"\nDone. {iteration} tool call(s).")
-        print(f"Report saved: {report_path}\n")
+    _log(f"\nDone. {iteration} tool call(s). Report: {report_path}")
 
     return answer

@@ -26,3 +26,9 @@ chroma_db/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Generated reports and charts
+output/
+
+# Local reference docs (not part of the project)
+HELPBOOK.md

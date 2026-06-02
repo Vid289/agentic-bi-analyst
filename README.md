@@ -74,9 +74,14 @@ Then build the database:
 python database/init_db.py
 ```
 
-And run the agent:
+Run the terminal interface:
 ```bash
 python -m src.cli
+```
+
+Or launch the Streamlit app:
+```bash
+streamlit run app.py
 ```
 
 ## The dataset
@@ -103,7 +108,7 @@ The data has a few patterns built in so the agent has interesting things to find
 - [x] Phase 2 — Agent loop with tool use and multi-provider LLM support
 - [x] Phase 3 — Statistical anomaly detection and root-cause investigation
 - [x] Phase 4 — Auto-generated visualizations and written summaries
-- [ ] Phase 5 — Streamlit UI and deployment
+- [x] Phase 5 — Streamlit UI and deployment
 
 ## Notes
 This is a portfolio project. The data is synthetic and the company is fictional. The architecture is intentionally simple — a custom agent loop instead of a framework like LangChain — so the mechanics are visible and easy to follow.

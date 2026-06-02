@@ -20,6 +20,8 @@ Each provider manages its own message history internally.
 
 from __future__ import annotations
 
+import time
+import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
@@ -27,9 +29,14 @@ from typing import Any
 import anthropic
 from google import genai
 from google.genai import types as gtypes
+from google.genai import errors as gerrors
 
 from src.config import CONFIG
 from src.tools import TOOLS_SCHEMA
+
+# How long to wait before each retry attempt, in seconds.
+# The free tier allows 5 requests per minute, so 60s is the minimum safe gap.
+_RETRY_DELAYS = [60, 90, 120]
 
 
 # --- data classes ---
@@ -173,12 +180,36 @@ class GoogleProvider(LLMProvider):
         )
 
     def _call(self) -> LLMResponse:
-        """Send the current contents and return a normalised response."""
-        response = self._client.models.generate_content(
-            model=CONFIG.gemini_model,
-            contents=self._contents,
-            config=self._make_config(),
-        )
+        """Send the current contents and return a normalised response.
+
+        Retries automatically on 429 rate-limit errors. The retry delay is
+        taken from the error message when available; otherwise falls back to
+        the values in _RETRY_DELAYS.
+        """
+        next_delay: int | None = None  # populated from the error message
+
+        for attempt in range(len(_RETRY_DELAYS) + 1):
+            if attempt > 0:
+                wait = next_delay if next_delay else _RETRY_DELAYS[attempt - 1]
+                print(f"[GoogleProvider] rate limited — waiting {wait}s before retry {attempt}...")
+                time.sleep(wait)
+                next_delay = None
+
+            try:
+                response = self._client.models.generate_content(
+                    model=CONFIG.gemini_model,
+                    contents=self._contents,
+                    config=self._make_config(),
+                )
+                break  # success — exit the retry loop
+            except gerrors.ClientError as exc:
+                if exc.code != 429 or attempt >= len(_RETRY_DELAYS):
+                    raise  # not a rate-limit error, or retries exhausted
+
+                # Pull the suggested wait time out of the error message if present
+                match = re.search(r"retry in (\d+)", str(exc))
+                if match:
+                    next_delay = int(match.group(1)) + 5
 
         candidate = response.candidates[0]
         self._contents.append(candidate.content)
