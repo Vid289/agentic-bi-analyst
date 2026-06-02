@@ -13,7 +13,11 @@ from __future__ import annotations
 
 from src.config import CONFIG
 from src.schema_introspection import get_schema_summary
-from src.tools import execute_tool, get_generated_charts, clear_generated_charts
+from src.tools import (
+    execute_tool,
+    get_generated_charts,   clear_generated_charts,
+    get_generated_dashboards, clear_generated_dashboards,
+)
 from src.llm_provider import get_provider
 from src.report import generate_report
 
@@ -36,6 +40,10 @@ analysis. You have these tools:
 - generate_chart: run a SQL query and save the result as a Plotly chart (line or
   bar). Use 'line' for time series, 'bar' for category comparisons. Call this
   after you've confirmed the data with run_sql so you know the column names.
+- generate_dashboard: produce a full interactive dark dashboard with multiple
+  charts and 3D visualisations. Use when the user asks for a "dashboard",
+  "overview", or wants to see broad metrics on a topic at once.
+  dashboard_type = 'overview' | 'revenue' | 'churn'.
 
 # How to work
 
@@ -88,8 +96,9 @@ def run_agent(question: str, verbose: bool = True, write_fn=None) -> str:
         elif verbose:
             print(msg)
 
-    # Clear any charts left over from a previous run
+    # Clear any charts / dashboards left over from a previous run
     clear_generated_charts()
+    clear_generated_dashboards()
 
     system_prompt = _build_system_prompt()
     provider = get_provider(system_prompt)
@@ -136,8 +145,9 @@ def run_agent(question: str, verbose: bool = True, write_fn=None) -> str:
     answer = response.text or "(No text response from agent.)"
 
     # Write the HTML report with any charts generated during the run
-    chart_paths = get_generated_charts()
-    report_path = generate_report(question, answer, chart_paths)
+    chart_paths     = get_generated_charts()
+    dashboard_paths = get_generated_dashboards()
+    report_path     = generate_report(question, answer, chart_paths + dashboard_paths)
 
     _log(f"\nDone. {iteration} tool call(s). Report: {report_path}")
 

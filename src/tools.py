@@ -424,6 +424,62 @@ def tool_generate_chart(
     return f"Chart saved: {path}"
 
 
+# --- dashboard tool ---
+
+# Tracks dashboard file paths generated during the current run.
+_generated_dashboards: list[str] = []
+
+
+def get_generated_dashboards() -> list[str]:
+    """Return dashboard paths produced so far in this run."""
+    return list(_generated_dashboards)
+
+
+def clear_generated_dashboards() -> None:
+    """Reset the dashboard list at the start of a new run."""
+    _generated_dashboards.clear()
+
+
+TOOLS_SCHEMA += [
+    {
+        "name": "generate_dashboard",
+        "description": (
+            "Generate a full interactive dark-themed dashboard with multiple charts "
+            "including 3D visualisations. Use this when the user asks to 'see a dashboard', "
+            "'show me the metrics', or wants a broad overview of a topic rather than a "
+            "specific number. "
+            "dashboard_type options: "
+            "'overview' — KPIs + MRR trend + plan donut + churn breakdown + 3D scatter; "
+            "'revenue'  — revenue KPIs + monthly trend + by region + 3D surface (plan × time); "
+            "'churn'    — churn KPIs + monthly trend + by reason + by region + 3D breakdown."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "dashboard_type": {
+                    "type": "string",
+                    "description": "'overview', 'revenue', or 'churn'",
+                },
+            },
+            "required": ["dashboard_type"],
+        },
+    },
+]
+
+
+def tool_generate_dashboard(dashboard_type: str) -> str:
+    """
+    Call the dashboard module, save the HTML file, and track the path.
+    """
+    from src.dashboard import generate_dashboard   # local import to avoid circular deps
+    try:
+        path = generate_dashboard(dashboard_type)
+        _generated_dashboards.append(path)
+        return f"Dashboard saved: {path}"
+    except Exception as e:
+        return f"Dashboard error: {type(e).__name__}: {e}"
+
+
 # --- dispatcher ---
 # Maps tool names to their Python functions.
 # execute_tool() is the only function the agent loop needs to call.
@@ -436,6 +492,7 @@ TOOL_FUNCTIONS = {
     "compare_cohort_rates": tool_compare_cohort_rates,
     "investigate_drop":     tool_investigate_drop,
     "generate_chart":       tool_generate_chart,
+    "generate_dashboard":   tool_generate_dashboard,
 }
 
 

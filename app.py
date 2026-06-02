@@ -337,17 +337,21 @@ TOOLS = [
     ("compare_cohort_rates", "Z-test two groups for significance"),
     ("investigate_drop",     "Decompose a before/after metric change"),
     ("generate_chart",       "Render Plotly line or bar charts"),
+    ("generate_dashboard",   "3D interactive multi-panel dashboard"),
     ("list_tables",          "List available tables"),
     ("describe_table",       "Inspect columns and sample rows"),
 ]
 
 EXAMPLES = [
-    ("revenue", "Why did MRR drop in Q3 2025?"),
-    ("revenue", "Which acquisition channels produce the highest LTV customers?"),
-    ("churn",   "Which customer segments have the highest churn rate?"),
-    ("churn",   "Compare enterprise vs pro plan churn rates"),
-    ("ops",     "What is the relationship between support tickets and churn?"),
-    ("ops",     "What happened to EMEA customers in Q3 2025?"),
+    ("revenue",   "Why did MRR drop in Q3 2025?"),
+    ("revenue",   "Which acquisition channels produce the highest LTV customers?"),
+    ("churn",     "Which customer segments have the highest churn rate?"),
+    ("churn",     "Compare enterprise vs pro plan churn rates"),
+    ("ops",       "What is the relationship between support tickets and churn?"),
+    ("ops",       "What happened to EMEA customers in Q3 2025?"),
+    ("dashboard", "Show me the revenue dashboard"),
+    ("dashboard", "Give me the full business overview dashboard"),
+    ("dashboard", "Show me the churn analysis dashboard"),
 ]
 
 
@@ -590,6 +594,9 @@ def _render_assistant(msg: dict, idx: int) -> None:
     for chart_html in msg.get("chart_htmls", []):
         components.html(chart_html, height=420, scrolling=False)
 
+    for dashboard_html in msg.get("dashboard_htmls", []):
+        components.html(dashboard_html, height=960, scrolling=True)
+
     if msg.get("report_bytes"):
         st.download_button(
             label="Download full report",
@@ -621,9 +628,10 @@ if not st.session_state.messages and not question:
     )
 
     categories = [
-        ("revenue", "Revenue"),
-        ("churn",   "Churn"),
-        ("ops",     "Operations"),
+        ("revenue",   "📈 Revenue"),
+        ("churn",     "📉 Churn"),
+        ("ops",       "🔧 Operations"),
+        ("dashboard", "📊 Dashboards"),
     ]
     by_cat: dict[str, list[str]] = {}
     for cat, q in EXAMPLES:
@@ -663,8 +671,9 @@ if question:
                 tool_log_lines.append(msg)
                 status.write(msg)
 
-            answer      = run_agent(question, verbose=False, write_fn=write_fn)
-            chart_paths = get_generated_charts()
+            answer           = run_agent(question, verbose=False, write_fn=write_fn)
+            chart_paths      = get_generated_charts()
+            dashboard_paths  = get_generated_dashboards()
 
             n_tools = sum(1 for l in tool_log_lines if l.strip().startswith("["))
             status.update(
@@ -681,7 +690,7 @@ if question:
 
         tool_log_text = "\n".join(l for l in tool_log_lines if l.strip())
         if tool_log_text:
-            with st.expander("View investigation steps"):
+            with st.expander("🔍 Investigation steps"):
                 formatted = _format_tool_log(tool_log_lines)
                 st.markdown(
                     f'<div class="tool-log">{formatted}</div>',
@@ -695,6 +704,14 @@ if question:
                 html_content = Path(path).read_text(encoding="utf-8")
                 chart_htmls.append(html_content)
                 components.html(html_content, height=420, scrolling=False)
+
+        # Dashboards — rendered taller so the 3D charts have room to breathe
+        dashboard_htmls: list[str] = []
+        for path in dashboard_paths:
+            if Path(path).exists():
+                html_content = Path(path).read_text(encoding="utf-8")
+                dashboard_htmls.append(html_content)
+                components.html(html_content, height=960, scrolling=True)
 
         report_bytes: bytes | None = None
         report_path = Path("output/report.html")
@@ -711,12 +728,13 @@ if question:
         # Update session stats
         st.session_state.session_stats["questions"]  += 1
         st.session_state.session_stats["tool_calls"] += n_tools
-        st.session_state.session_stats["charts"]     += len(chart_htmls)
+        st.session_state.session_stats["charts"]     += len(chart_htmls) + len(dashboard_htmls)
 
         st.session_state.messages.append({
-            "role":         "assistant",
-            "content":      answer,
-            "tool_log":     tool_log_text,
-            "chart_htmls":  chart_htmls,
-            "report_bytes": report_bytes,
+            "role":            "assistant",
+            "content":         answer,
+            "tool_log":        tool_log_text,
+            "chart_htmls":     chart_htmls,
+            "dashboard_htmls": dashboard_htmls,
+            "report_bytes":    report_bytes,
         })
